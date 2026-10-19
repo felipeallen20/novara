@@ -1,15 +1,20 @@
-[gd_scene load_steps=8 format=3 uid="uid://b45aatdgae8yk"]
+[gd_scene format=3 uid="uid://b45aatdgae8yk"]
 
-[ext_resource type="Script" path="res://scripts/world/world.gd" id="1_world"]
-
-[ext_resource type="Script" path="res://scripts/world/chunk_streamer.gd" id="2_streamer"]
-
+[ext_resource type="Script" uid="uid://dnphdxleh2g1r" path="res://scripts/world/world.gd" id="1_world"]
+[ext_resource type="Script" uid="uid://dow7axsu0grie" path="res://scripts/world/chunk_streamer.gd" id="2_streamer"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
-
-[ext_resource type="Shader" path="res://shaders/alien_sky.gdshader" id="4_sky"]
+[ext_resource type="Shader" uid="uid://bt11ukkysy4hf" path="res://shaders/alien_sky.gdshader" id="4_sky"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
 shader = ExtResource("4_sky")
+shader_parameter/zenith_color = Color(0.28, 0.24, 0.48, 1)
+shader_parameter/upper_color = Color(0.5, 0.44, 0.7, 1)
+shader_parameter/middle_color = Color(0.72, 0.6, 0.76, 1)
+shader_parameter/lower_color = Color(0.9, 0.68, 0.62, 1)
+shader_parameter/horizon_color = Color(0.98, 0.74, 0.5, 1)
+shader_parameter/ground_color = Color(0.34, 0.28, 0.36, 1)
+shader_parameter/horizon_gradient = 1.25
+shader_parameter/horizon_glow = 0.35
 
 [sub_resource type="Sky" id="Sky_alien"]
 sky_material = SubResource("ShaderMaterial_sky")
@@ -19,8 +24,8 @@ background_mode = 2
 sky = SubResource("Sky_alien")
 ambient_light_source = 2
 ambient_light_color = Color(0.66, 0.6, 0.82, 1)
-ambient_light_energy = 0.6
 ambient_light_sky_contribution = 0.0
+ambient_light_energy = 0.6
 tonemap_mode = 2
 tonemap_exposure = 1.1
 
@@ -41,5 +46,5 @@ directional_shadow_max_distance = 160.0
 [node name="ChunkStreamer" type="Node3D" parent="." unique_id=812345003]
 script = ExtResource("2_streamer")
 
-[node name="Player" parent="." instance=ExtResource("3_player") unique_id=812345013]
+[node name="Player" parent="." unique_id=812345013 instance=ExtResource("3_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 18, 16)
