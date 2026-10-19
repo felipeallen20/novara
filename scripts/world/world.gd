@@ -1,0 +1,28 @@
+extends Node3D
+
+## Punto de entrada del mundo. Configura el streamer de chunks y le indica al jugador
+## como visor.
+
+const LOAD_DISTANCE_CHUNKS := 6
+const UNLOAD_DISTANCE_CHUNKS := 8
+const WORLD_SEED := 12345
+
+## Banda vertical absoluta de chunks. El terreno de prueba solo existe en y = 0.
+const CHUNK_Y_RANGE := Vector2i(0, 0)
+
+@onready var _chunk_streamer: ChunkStreamer = $ChunkStreamer
+@onready var _player: CharacterBody3D = $Player
+
+
+func _ready() -> void:
+	var registry := BlockRegistry.with_default_blocks()
+	var generator := TerrainGenerator.new(WORLD_SEED, ChunkStreamer.CHUNK_SIZE)
+	_chunk_streamer.configure(
+		LOAD_DISTANCE_CHUNKS,
+		UNLOAD_DISTANCE_CHUNKS,
+		CHUNK_Y_RANGE,
+		generator,
+		ChunkMesher.new(),
+		registry
+	)
+	_chunk_streamer.set_viewer(_player)

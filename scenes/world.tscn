@@ -1,0 +1,45 @@
+[gd_scene load_steps=8 format=3 uid="uid://b45aatdgae8yk"]
+
+[ext_resource type="Script" path="res://scripts/world/world.gd" id="1_world"]
+
+[ext_resource type="Script" path="res://scripts/world/chunk_streamer.gd" id="2_streamer"]
+
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
+
+[ext_resource type="Shader" path="res://shaders/alien_sky.gdshader" id="4_sky"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("4_sky")
+
+[sub_resource type="Sky" id="Sky_alien"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_alien"]
+background_mode = 2
+sky = SubResource("Sky_alien")
+ambient_light_source = 2
+ambient_light_color = Color(0.66, 0.6, 0.82, 1)
+ambient_light_energy = 0.6
+ambient_light_sky_contribution = 0.0
+tonemap_mode = 2
+tonemap_exposure = 1.1
+
+[node name="World" type="Node3D" unique_id=414166197]
+script = ExtResource("1_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1159287216]
+environment = SubResource("Environment_alien")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=197565513]
+transform = Transform3D(0.77096, 0, -0.63688, -0.51053, 0.59785, -0.61801, 0.38076, 0.8016, 0.46092, 0, 0, 0)
+light_color = Color(1, 0.84, 0.66, 1)
+light_energy = 1.2
+light_angular_distance = 1.5
+shadow_enabled = true
+directional_shadow_max_distance = 160.0
+
+[node name="ChunkStreamer" type="Node3D" parent="." unique_id=812345003]
+script = ExtResource("2_streamer")
+
+[node name="Player" parent="." instance=ExtResource("3_player") unique_id=812345013]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 18, 16)
