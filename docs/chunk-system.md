@@ -43,7 +43,7 @@ res://
   scenes/        world.tscn, chunk_view.tscn, player.tscn
   shaders/       alien_sky.gdshader
   scripts/
-    blocks/      block.gd, soft_ground.gd, block_registry.gd
+    blocks/      block.gd, soft_ground.gd, lavender_stone.gd, block_registry.gd
     generation/  terrain_generator.gd
     player/      player_controller.gd
     voxel/       chunk_coord.gd, chunk_data.gd, chunk_mesh_data.gd, chunk_mesher.gd
@@ -89,6 +89,8 @@ World (Node3D)                 ← world.tscn, script world.gd (raíz y punto de
 - `Block` (Resource): plantilla con las características comunes (`id`, `display_name`,
   `color`, `opaque`, `solid`). Todos los bloques heredan de ella.
 - `SoftGround` (hereda de `Block`): bloque base de superficie, color beige/amarillo.
+- `LavenderStone` (hereda de `Block`): piedra de superficie de tono lavanda, algo más
+  clara. Comparte terreno con `SoftGround`.
 - `BlockRegistry` (Resource): asocia `id → Block`. Se construye una vez y se comparte
   sin modificarse, lo que lo hace seguro para los hilos.
 - A futuro, los bloques podrán definirse también como `.tres` sobre `Block` para
@@ -103,8 +105,13 @@ World (Node3D)                 ← world.tscn, script world.gd (raíz y punto de
   evalúa el ruido **una vez por columna** (no una por vóxel, que multiplicaba el coste
   por la altura del chunk) y vuelca cada columna con `ChunkData.fill_column`, sin una
   llamada por vóxel.
-- La configuración (semilla, frecuencia, amplitud, biomas) vivirá en un `WorldConfig`
-  para no repartir números mágicos.
+- **Material de superficie**: un segundo ruido, con semilla y frecuencia propias, elige el
+  bloque de cada columna. El umbral está en `0.0`, el centro de la distribución del ruido,
+  así que `LavenderStone` y `SoftGround` cubren el terreno a partes aproximadamente
+  iguales; subir el umbral reduce la proporción de piedra lavanda. Sigue siendo una
+  muestra de ruido por columna, y una columna entera comparte material.
+- La configuración (semilla, frecuencia, amplitud, materiales, biomas) vivirá en un
+  `WorldConfig` para no repartir números mágicos.
 
 ## 8. Meshing
 

@@ -13,6 +13,7 @@ var _opaque: Array[bool] = []
 static func with_default_blocks() -> BlockRegistry:
 	var registry := BlockRegistry.new()
 	registry.register(SoftGround.new())
+	registry.register(LavenderStone.new())
 	return registry
 
 
