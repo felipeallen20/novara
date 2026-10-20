@@ -18,7 +18,10 @@ const STAT_HUNGER := &"hunger"
 @export var max_hunger := 100.0
 
 ## Puntos por segundo que se pierde cada estadística de forma pasiva.
-@export var oxygen_drain_rate := 1.0
+## El oxígeno solo se pierde fuera de la zona segura; con el valor por defecto
+## el tanque completo (100) dura 100 / (100/180) = 180 s = 3 minutos.
+@export var oxygen_drain_rate := 100.0 / 180.0
+@export var oxygen_refill_rate := 10.0
 @export var hunger_drain_rate := 0.5
 
 ## Daño por segundo a la integridad cuando el oxígeno o el hambre están a cero.
@@ -43,13 +46,17 @@ func is_alive() -> bool:
 
 
 ## Drena oxígeno y hambre de forma pasiva. Llamar una vez por frame (o en un
-## temporizador) con el delta correspondiente.
-func tick(delta: float) -> void:
+## temporizador) con el delta correspondiente. Dentro de la zona segura el
+## oxígeno se recarga en lugar de drenarse y no hay daño por asfixia.
+func tick(delta: float, in_safe_zone: bool) -> void:
 	if not _alive:
 		return
-	consume_oxygen(oxygen_drain_rate * delta)
+	if in_safe_zone:
+		refill_oxygen(oxygen_refill_rate * delta)
+	else:
+		consume_oxygen(oxygen_drain_rate * delta)
 	consume_hunger(hunger_drain_rate * delta)
-	if oxygen <= 0.0:
+	if not in_safe_zone and oxygen <= 0.0:
 		damage(suffocation_damage_rate * delta)
 	if hunger <= 0.0:
 		damage(starvation_damage_rate * delta)
@@ -108,7 +115,7 @@ func reset() -> void:
 
 
 func _set_stat(stat: StringName, value: float, maximum: float) -> void:
-	var was_depleted := get(stat) <= 0.0
+	var was_depleted: bool = get(stat) <= 0.0
 	set(stat, clampf(value, 0.0, maximum))
 	stat_changed.emit(stat, get(stat), maximum)
 	if not was_depleted and get(stat) <= 0.0:

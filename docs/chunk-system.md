@@ -91,6 +91,8 @@ World (Node3D)                 ← world.tscn, script world.gd (raíz y punto de
 - `SoftGround` (hereda de `Block`): bloque base de superficie, color beige/amarillo.
 - `LavenderStone` (hereda de `Block`): piedra de superficie de tono lavanda, algo más
   clara. Comparte terreno con `SoftGround`.
+- `DarkStone` (hereda de `Block`): piedra de tono morado oscuro. Completa la paleta
+  mineral junto a `SoftGround` y `LavenderStone`.
 - `BlockRegistry` (Resource): asocia `id → Block`. Se construye una vez y se comparte
   sin modificarse, lo que lo hace seguro para los hilos.
 - A futuro, los bloques podrán definirse también como `.tres` sobre `Block` para
@@ -106,10 +108,16 @@ World (Node3D)                 ← world.tscn, script world.gd (raíz y punto de
   por la altura del chunk) y vuelca cada columna con `ChunkData.fill_column`, sin una
   llamada por vóxel.
 - **Material de superficie**: un segundo ruido, con semilla y frecuencia propias, elige el
-  bloque de cada columna. El umbral está en `0.0`, el centro de la distribución del ruido,
-  así que `LavenderStone` y `SoftGround` cubren el terreno a partes aproximadamente
-  iguales; subir el umbral reduce la proporción de piedra lavanda. Sigue siendo una
-  muestra de ruido por columna, y una columna entera comparte material.
+  bloque de cada columna. Dos umbrales (`-0.33` y `0.33`) dividen el ruido en tres
+  bandas de extensión comparable, una por bloque de superficie (`SoftGround`,
+  `LavenderStone` y `DarkStone`); mover los umbrales cambia la proporción de cada
+  material. Sigue siendo una muestra de ruido por columna, y una columna entera comparte
+  material.
+- **Safe zone**: `SafeZone` define un área de `8 x 8` columnas centrada en el punto de
+  aparición del jugador. `World` la construye a partir de la posición del `Player` en la
+  escena y la inyecta al generador, que aplana esas columnas a `BASE_HEIGHT`, y al
+  jugador, que imprime `Safe Zone` / `Fuera de Safe Zone` al entrar o salir caminando.
+  Es inmutable tras construirse, por lo que los hilos de generación pueden leerla.
 - La configuración (semilla, frecuencia, amplitud, materiales, biomas) vivirá en un
   `WorldConfig` para no repartir números mágicos.
 

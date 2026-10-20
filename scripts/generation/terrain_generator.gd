@@ -16,19 +16,28 @@ const MATERIAL_FREQUENCY := 0.035
 ## Semilla propia del ruido de material, para que no coincida con la del relieve.
 const MATERIAL_SEED_OFFSET := 7919
 
-## Umbral sobre el ruido de material. En 0.0 el ruido queda repartido mitad y mitad, así
-## que LavenderStone y SoftGround cubren una superficie equivalente.
-const LAVENDER_STONE_THRESHOLD := 0.0
+## Umbrales sobre el ruido de material. El ruido simplex se reparte de forma
+## aproximadamente uniforme en [-1, 1], así que dos umbrales en tercios dividen el
+## terreno en tres bandas de superficie comparable.
+const DARK_STONE_THRESHOLD := -0.33
+const LAVENDER_STONE_THRESHOLD := 0.33
 
 var _chunk_size: int
 var _world_seed: int
 var _frequency: float
+var _safe_zone: SafeZone
 
 
-func _init(world_seed: int, chunk_size: int, frequency: float = DEFAULT_FREQUENCY) -> void:
+func _init(
+	world_seed: int,
+	chunk_size: int,
+	frequency: float = DEFAULT_FREQUENCY,
+	safe_zone: SafeZone = null
+) -> void:
 	_world_seed = world_seed
 	_chunk_size = chunk_size
 	_frequency = frequency
+	_safe_zone = safe_zone
 
 
 func generate(chunk_coord: Vector3i) -> ChunkData:
@@ -48,15 +57,20 @@ func generate(chunk_coord: Vector3i) -> ChunkData:
 
 
 func surface_height(noise: FastNoiseLite, world_x: int, world_z: int) -> int:
+	if _safe_zone != null and _safe_zone.contains_xz(world_x, world_z):
+		return _safe_zone.flat_height
 	return BASE_HEIGHT + roundi(noise.get_noise_2d(world_x, world_z) * HEIGHT_AMPLITUDE)
 
 
-## Bloque de superficie de una columna. El umbral divide el ruido en dos mitades, así que
-## ambos bloques ocupan el terreno a partes aproximadamente iguales.
+## Bloque de superficie de una columna. Los umbrales dividen el ruido en tres
+## bandas, así que los tres bloques ocupan franjas de terreno comparables.
 func surface_block(material_noise: FastNoiseLite, world_x: int, world_z: int) -> int:
-	if material_noise.get_noise_2d(world_x, world_z) >= LAVENDER_STONE_THRESHOLD:
+	var material := material_noise.get_noise_2d(world_x, world_z)
+	if material >= LAVENDER_STONE_THRESHOLD:
 		return LavenderStone.ID
-	return SoftGround.ID
+	if material >= DARK_STONE_THRESHOLD:
+		return SoftGround.ID
+	return DarkStone.ID
 
 
 func _create_height_noise() -> FastNoiseLite:
