@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c6u2hlx6re0eb"]
 
 [ext_resource type="Script" uid="uid://d08jmr6yf6sjt" path="res://scripts/ui/hud.gd" id="1_0mwgc"]
+[ext_resource type="FontFile" uid="uid://bs3mitqdq3bdu" path="res://assets/fonts/VCR_OSD_MONO_1.001.ttf" id="2_hqnrr"]
 
 [node name="Hud" type="CanvasLayer" unique_id=530872172]
 script = ExtResource("1_0mwgc")
@@ -16,15 +17,15 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="VBoxContainer/IntegrityRow" unique_id=543310694]
 layout_mode = 2
-text = "Integridad"
-
-[node name="IntegrityBar" type="ProgressBar" parent="VBoxContainer/IntegrityRow" unique_id=1695881814]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-size_flags_horizontal = 3
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_hqnrr")
+text = "Integridad:"
 
 [node name="IntegrityValue" type="Label" parent="VBoxContainer/IntegrityRow" unique_id=1029299965]
 layout_mode = 2
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_hqnrr")
 text = "100%"
 
 [node name="OxygenRow" type="HBoxContainer" parent="VBoxContainer" unique_id=1410061806]
@@ -32,13 +33,14 @@ layout_mode = 2
 
 [node name="Label" type="Label" parent="VBoxContainer/OxygenRow" unique_id=1559322595]
 layout_mode = 2
-text = "Oxigeno"
-
-[node name="OxygenBar" type="ProgressBar" parent="VBoxContainer/OxygenRow" unique_id=1166321170]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-size_flags_horizontal = 3
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_hqnrr")
+text = "Oxigeno:"
 
 [node name="OxygenValue" type="Label" parent="VBoxContainer/OxygenRow" unique_id=1973230180]
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_hqnrr")
 text = "100%"

@@ -6,9 +6,9 @@ extends CanvasLayer
 
 @export var player: PlayerController
 
-@onready var _integrity_bar: ProgressBar = $VBoxContainer/IntegrityRow/IntegrityBar
+#@onready var _integrity_bar: ProgressBar = $VBoxContainer/IntegrityRow/IntegrityBar
 @onready var _integrity_value: Label = $VBoxContainer/IntegrityRow/IntegrityValue
-@onready var _oxygen_bar: ProgressBar = $VBoxContainer/OxygenRow/OxygenBar
+#@onready var _oxygen_bar: ProgressBar = $VBoxContainer/OxygenRow/OxygenBar
 @onready var _oxygen_value: Label = $VBoxContainer/OxygenRow/OxygenValue
 
 
@@ -29,10 +29,6 @@ func _update_stat(stat: StringName, current: float, maximum: float) -> void:
 	var percent := int(roundf(current / maximum * 100.0))
 	match stat:
 		PlayerStats.STAT_INTEGRITY:
-			_integrity_bar.max_value = maximum
-			_integrity_bar.value = current
 			_integrity_value.text = "%d %%" % percent
 		PlayerStats.STAT_OXYGEN:
-			_oxygen_bar.max_value = maximum
-			_oxygen_bar.value = current
 			_oxygen_value.text = "%d %%" % percent

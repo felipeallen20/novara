@@ -20,7 +20,7 @@ const STAT_HUNGER := &"hunger"
 ## Puntos por segundo que se pierde cada estadística de forma pasiva.
 ## El oxígeno solo se pierde fuera de la zona segura; con el valor por defecto
 ## el tanque completo (100) dura 100 / (100/180) = 180 s = 3 minutos.
-@export var oxygen_drain_rate := 100.0 / 180.0
+@export var oxygen_drain_rate := 100.0 / 300.0
 @export var oxygen_refill_rate := 10.0
 @export var hunger_drain_rate := 0.5
 
