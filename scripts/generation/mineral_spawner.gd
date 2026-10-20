@@ -15,13 +15,13 @@ extends RefCounted
 @export var patch_frequency: float = 0.08
 ## Valor del ruido de parche a partir del cual la columna cae dentro de un yacimiento.
 ## Con este valor los yacimientos cubren algo más del 10 % del terreno, en parches.
-@export var patch_threshold: float = 0.42
+@export var patch_threshold: float = 0.48
 ## Frecuencia del ruido de dispersión. Muy mayor que la del parche, para que los
 ## cristales sueltos sean columnas individuales y no bloques macizos.
 @export var scatter_frequency: float = 0.45
 ## Valor del ruido de dispersión a partir del cual la columna concreta tiene cristal.
 ## Combinado con el de parche deja cristales sueltos dentro de cada yacimiento.
-@export var scatter_threshold: float = 0.35
+@export var scatter_threshold: float = 0.50
 
 ## Semillas propias de los ruidos, para que no coincidan con las del bioma.
 const PATCH_SEED_OFFSET := 499

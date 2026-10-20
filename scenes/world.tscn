@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dnphdxleh2g1r" path="res://scripts/world/world.gd" id="1_world"]
 [ext_resource type="PackedScene" uid="uid://c6u2hlx6re0eb" path="res://scenes/ui/hud.tscn" id="2_71j4m"]
 [ext_resource type="Script" uid="uid://dow7axsu0grie" path="res://scripts/world/chunk_streamer.gd" id="2_streamer"]
-[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player"]
+[ext_resource type="PackedScene" uid="uid://cksu4c1vg4d8a" path="res://scenes/player.tscn" id="3_player"]
 [ext_resource type="Shader" uid="uid://bt11ukkysy4hf" path="res://shaders/alien_sky.gdshader" id="4_sky"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
