@@ -1,17 +1,24 @@
 class_name ChunkData
 extends RefCounted
 
-## Vóxeles de un chunk. Sin nodos ni render.
+## Vóxeles de un chunk y los depósitos de minerales que nacen sobre su superficie.
+## Sin nodos ni render: la representación de los depósitos la crea el streamer en el
+## hilo principal.
 
 const AIR := 0
 
 var size: int = 0
+
+## Depósitos de minerales en coordenadas locales. Los decide la generación junto a
+## los vóxeles, así llegan con el mismo ChunkData.
+var mineral_spawns: Array[MineralSpawn] = []
 
 var _blocks: PackedByteArray
 
 
 func configure(chunk_size: int) -> void:
 	size = chunk_size
+	mineral_spawns = []
 	_blocks = PackedByteArray()
 	_blocks.resize(chunk_size * chunk_size * chunk_size)
 	_blocks.fill(AIR)

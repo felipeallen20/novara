@@ -41,13 +41,18 @@ hilos y reutilizarlos en pruebas sin tocar el árbol de escena.
 res://
   docs/          chunk-system.md
   scenes/        world.tscn, chunk_view.tscn, player.tscn
+    minerals/    sandite.tscn (modelo de un depósito de cristales)
+    tools/       mining_pistol.tscn
+    ui/          hud.tscn
   shaders/       alien_sky.gdshader
   scripts/
-    blocks/      block.gd, soft_ground.gd, lavender_stone.gd, block_registry.gd
-    generation/  terrain_generator.gd
+    blocks/      block.gd, soft_ground.gd, lavender_stone.gd, dark_stone.gd, block_registry.gd
+    generation/  biome.gd, mining_lands_biome.gd, terrain_generator.gd, mineral_spawner.gd
+    minerals/    mineral.gd, sandite.gd, mineral_registry.gd, mineral_spawn.gd,
+                 mineral_deposit.gd, crystal_mesh.gd
     player/      player_controller.gd
     voxel/       chunk_coord.gd, chunk_data.gd, chunk_mesh_data.gd, chunk_mesher.gd
-    world/       chunk_view.gd, world.gd
+    world/       chunk_view.gd, chunk_streamer.gd, world.gd, safe_zone.gd
   data/          (bloques .tres, world_config.tres) — pendiente
 ```
 
@@ -80,7 +85,8 @@ World (Node3D)                 ← world.tscn, script world.gd (raíz y punto de
   mundo ↔ chunk ↔ local. Es la única fuente de verdad de esa matemática.
 - `ChunkData`: `PackedByteArray` de `size³`, índice `x + z*size + y*size*size`. Un byte
   por vóxel = 256 tipos de bloque. `0` es aire (`ChunkData.AIR`); los bloques reales
-  usan identificadores `>= 1`.
+  usan identificadores `>= 1`. Además lleva `mineral_spawns`, los depósitos de
+  minerales que la generación decide sobre la superficie del chunk (sección 17).
 - `ChunkMeshData`: contenedor de `vertices`, `normals`, `colors`, `indices`. Es el
   objeto que se transfiere del hilo de cálculo al hilo principal.
 
@@ -200,6 +206,9 @@ frame:
    vecinos (pendiente).
 6. Biomas y `WorldConfig` como recurso.
 7. Persistencia de ediciones.
+8. **Hecho** — minerales de superficie: `Mineral`, `Sandite`, `MineralSpawner` y
+   depósitos instanciados en la vista del chunk (sección 17). Pendiente: minado y
+   recolección de los depósitos.
 
 ## 14. Verificación
 
@@ -256,3 +265,36 @@ nodos, scripts ni recursos adicionales más allá del shader del cielo.
   la parte más cara de aplicar un chunk; por eso `MAX_RESULTS_PER_FRAME` es bajo. Si
   molesta, limitar la colisión a los chunks cercanos.
 - Sin edición de bloques todavía: el chunk se puede pisar pero no modificar.
+
+## 17. Minerales de superficie
+
+Los minerales no son bloques: son depósitos con forma propia que la generación coloca
+sobre la superficie, separados en capas para no acoplar datos, generación y render:
+
+- `Mineral` (Resource): plantilla con las propiedades comunes (`id`, `display_name`,
+  `rarity`, `durability`, `yield_amount`, `color`, `host_block_id` y `model`). Todos
+  los minerales heredan de ella, igual que los bloques.
+- `Sandite` (hereda de `Mineral`): Arenita, mineral común gris/café. Crece sobre las
+  columnas de `SoftGround` y su `model` es `scenes/minerals/sandite.tscn`.
+- `MineralRegistry` (Resource): asocia `id → Mineral`; se construye una vez en `World`
+  y se comparte sin modificarse.
+- `MineralSpawner`: decide qué columnas tienen depósito. Cada mineral usa dos ruidos
+  derivados de la semilla del mundo y de su id: uno de parche (`patch_frequency` y
+  `patch_threshold`) marca los yacimientos y otro de dispersión reparte los cristales
+  dentro de cada parche, para que no salgan bloques macizos de cristal. Dos minerales
+  no comparten emplazamientos y la generación sigue siendo determinista sin guardar
+  nada. Inmutable tras `setup`, con el mismo contrato que `Biome`.
+- `MineralSpawn`: dato puro (`mineral_id`, `local_position`, `rotation`, `scale`,
+  `variation_seed`) que la generación añade a `ChunkData.mineral_spawns`, en
+  coordenadas locales del chunk. `TerrainGenerator` no pide depósitos dentro de la
+  safe zone, que queda limpia para la aparición.
+- `CrystalMesh`: construye la malla del depósito por código: un grupo de astas
+  facetadas con normales por cara (sombreado plano) y el tinte del mineral en los
+  vértices, de modo que un único material sirve para todos los minerales. Cada asta
+  se hunde ligeramente (`BASE_SINK`) para que su giro no levante la base del suelo.
+- `MineralDeposit` (script de `sandite.tscn`): instancia el modelo y construye su
+  malla con `apply(mineral, variation_seed)`. La semilla sale de la posición de la
+  columna, así el mismo sitio siempre luce el mismo depósito.
+- Streaming: `ChunkStreamer` instancia los depósitos del chunk como hijos de su
+  `ChunkView` al crearla, así se descargan con la vista sin llevar una cuenta aparte.
+  No tienen colisión todavía: el minado y la recolección están pendientes.

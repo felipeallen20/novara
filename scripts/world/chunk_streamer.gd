@@ -31,6 +31,7 @@ var _chunk_y_range: Vector2i
 var _generator: TerrainGenerator
 var _mesher: ChunkMesher
 var _registry: BlockRegistry
+var _mineral_registry: MineralRegistry
 var _viewer: Node3D
 
 var _viewer_chunk := Vector3i.ZERO
@@ -53,7 +54,8 @@ func configure(
 	chunk_y_range: Vector2i,
 	generator: TerrainGenerator,
 	mesher: ChunkMesher,
-	registry: BlockRegistry
+	registry: BlockRegistry,
+	mineral_registry: MineralRegistry
 ) -> void:
 	_load_distance = load_distance
 	_unload_distance = unload_distance
@@ -61,6 +63,7 @@ func configure(
 	_generator = generator
 	_mesher = mesher
 	_registry = registry
+	_mineral_registry = mineral_registry
 
 
 func set_viewer(viewer: Node3D) -> void:
@@ -236,7 +239,25 @@ func _spawn_view(coord: Vector3i, mesh_data: ChunkMeshData) -> void:
 	add_child(view)
 	view.position = ChunkCoord.chunk_to_world(coord, CHUNK_SIZE)
 	view.apply(mesh_data)
+	_spawn_mineral_deposits(view, coord)
 	_views[coord] = view
+
+
+## Instancia los depósitos de minerales del chunk dentro de su vista. Al colgar del
+## ChunkView se descargan con él, sin llevar una cuenta aparte.
+func _spawn_mineral_deposits(view: Node3D, coord: Vector3i) -> void:
+	var data: ChunkData = _chunk_data[coord]
+	for spawn: MineralSpawn in data.mineral_spawns:
+		var mineral := _mineral_registry.get_mineral(spawn.mineral_id)
+		if mineral == null or mineral.model == null:
+			continue
+		var deposit := mineral.model.instantiate() as Node3D
+		view.add_child(deposit)
+		deposit.position = spawn.local_position
+		deposit.rotation = spawn.rotation
+		deposit.scale = Vector3.ONE * spawn.scale
+		if deposit is MineralDeposit:
+			(deposit as MineralDeposit).apply(mineral, spawn.variation_seed)
 
 
 ## Descarga con histéresis: se conserva hasta _unload_distance para no recargar lo que se
