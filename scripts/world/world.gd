@@ -16,10 +16,10 @@ const CHUNK_Y_RANGE := Vector2i(0, 0)
 
 func _ready() -> void:
 	var registry := BlockRegistry.with_default_blocks()
-	var safe_zone := SafeZone.new(_player.global_position, TerrainGenerator.BASE_HEIGHT)
-	var generator := TerrainGenerator.new(
-		WORLD_SEED, ChunkStreamer.CHUNK_SIZE, TerrainGenerator.DEFAULT_FREQUENCY, safe_zone
-	)
+	var biome := MiningLandsBiome.new()
+	biome.setup(WORLD_SEED)
+	var safe_zone := SafeZone.new(_player.global_position, biome.base_height)
+	var generator := TerrainGenerator.new(biome, ChunkStreamer.CHUNK_SIZE, safe_zone)
 	_chunk_streamer.configure(
 		LOAD_DISTANCE_CHUNKS,
 		UNLOAD_DISTANCE_CHUNKS,
