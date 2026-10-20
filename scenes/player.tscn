@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cksu4c1vg4d8a"]
 
-[ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_player"]
+[ext_resource type="Script" uid="uid://c244oww7kxcut" path="res://scripts/player/player_controller.gd" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://dsu4xvynn4cr3" path="res://scenes/tools/mining_pistol.tscn" id="2_g2els"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -16,3 +17,8 @@ shape = SubResource("CapsuleShape3D_body")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=812345012]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 current = true
+
+[node name="RightHand" type="Marker3D" parent="Camera3D" unique_id=1112287852]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.7, 0)
+
+[node name="MiningPistol" parent="." unique_id=555612279 instance=ExtResource("2_g2els")]

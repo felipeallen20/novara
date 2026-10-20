@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://dsu4xvynn4cr3"]
+
+[ext_resource type="Script" uid="uid://dtbayl4gxt7hr" path="res://scripts/tools/mining/mining_pistol.gd" id="1_luyqp"]
+[ext_resource type="PackedScene" uid="uid://bgvr1wkrsk7bg" path="res://assets/models/tools/mining/mining-pistol.glb" id="2_20a6c"]
+
+[node name="MiningPistol" type="Node3D" unique_id=555612279]
+script = ExtResource("1_luyqp")
+
+[node name="Muzzle" type="Marker3D" parent="." unique_id=826447269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.24736394, 0.0735479, -0.00048629194)
+
+[node name="Laser" type="RayCast3D" parent="." unique_id=1582754310]
+
+[node name="Model" parent="." unique_id=1788344394 instance=ExtResource("2_20a6c")]
+transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0, 0)

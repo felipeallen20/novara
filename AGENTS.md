@@ -8,80 +8,24 @@ El objetivo es ofrecer un universo que invite al jugador a explorar y experiment
 
 NOVARA es un proyecto independiente. No debe mezclarse con el proyecto Valero ni heredar sus decisiones de diseño o arquitectura.
 
-## 2. Regla de alcance: solo scripts (PRIORIDAD MÁXIMA)
+## 2. Alcance de trabajo
 
-Esta sección tiene prioridad sobre cualquier otra instrucción de este archivo y sobre cualquier hábito de trabajo por defecto.
+El agente puede crear, leer y modificar todo lo que la tarea requiera:
 
-### Qué puedes hacer
+- **Scripts GDScript** (`.gd`).
+- **Escenas** (`.tscn`): crearlas, editarlas, renombrarlas o moverlas, incluyendo añadir, quitar o reconfigurar nodos, propiedades, asignaciones de scripts y conexiones de señales.
+- **Recursos** (`.tres`, `.res`): materiales, mallas, temas y demás, además de las instancias de clases personalizadas definidas en script.
+- **Configuración del proyecto** (`project.godot`): Autoloads, Input Map, capas de física y de renderizado, grupos globales, etc.
 
-- Crear, leer y modificar **scripts GDScript** (`.gd`).
-- Leer escenas (`.tscn`), recursos (`.tres`) y la configuración del proyecto **solo para entender** cómo está montado el proyecto. Lectura, nunca escritura.
-- Definir clases personalizadas en script (por ejemplo, clases que extiendan `Resource`) cuando el diseño lo requiera. Crear la clase es trabajo de script; crear instancias de esa clase como archivo `.tres` NO lo es (ver más abajo).
+### Precauciones al editar archivos de Godot
 
-### Qué NO puedes hacer (ni siquiera "un cambio pequeño")
+- No tocar la carpeta `.godot/` ni los archivos importados (`.import`) generados por el motor.
+- Al editar `.tscn`, `.tres` o `project.godot` como texto, respetar el formato del motor y no romper identificadores (`uid`, `id` de recursos y subrecursos) ni referencias entre archivos.
+- Si se renombra o mueve un archivo, actualizar todas las referencias que apunten a él (escenas, recursos, scripts y `project.godot`).
+- Hacer cambios mínimos y acotados en `project.godot`, y mencionarlos siempre en el resumen final.
+- Si algo solo puede hacerse desde el editor (por ejemplo, un reimportado de assets o una acción que requiera la interfaz), indicarlo con claridad y explicar brevemente cómo hacerlo.
 
-- **No crear, editar, renombrar, mover ni borrar escenas** (`.tscn`).
-- **No añadir, quitar, renombrar, reordenar ni reconfigurar nodos** en ninguna escena, ni editando el `.tscn` a mano ni por ningún otro medio.
-- **No crear ni editar archivos de recursos** (`.tres`, `.res`) ni materiales, mallas, texturas, temas, shaders-recurso u otros assets.
-- **No editar `project.godot`** ni la configuración del proyecto: Autoloads, Input Map, capas de física y de renderizado, grupos globales, ajustes de renderizado, etc.
-- **No cambiar** propiedades de nodos desde el Inspector (a mano o editando archivos), conexiones de señales hechas en el editor, ni asignaciones de scripts a nodos.
-- No tocar archivos importados ni la carpeta `.godot/`.
-
-### Qué sí puede hacer un script con los nodos
-
-Un script puede crear y manipular nodos **en tiempo de ejecución** (por ejemplo, instanciar una `MeshInstance3D` por chunk, conectar señales con `connect()` o añadir un nodo hijo con `add_child()`). Esto está permitido porque el cambio vive en el script, no en la escena. Úsalo cuando sea natural y encaje con la arquitectura existente (por ejemplo, los chunks de un mundo voxel se crean por código de todos modos). No lo uses como excusa para reemplazar toda una escena por código ni para esquivar una estructura de nodos que el proyecto ya tiene.
-
-### Si una tarea requiere tocar escenas, nodos o el editor
-
-Cuando una tarea necesite algo que está fuera de los scripts, **no lo hagas tú**. En su lugar:
-
-1. Termina la parte que sí es de script.
-2. Entrega al usuario una **guía paso a paso detallada** (ver sección 3) para la parte que debe hacer él en el editor.
-3. Indica claramente en el resumen final qué quedó pendiente del lado del editor.
-
-Si la tarea es imposible o inútil sin esos pasos manuales, di cuáles son antes de empezar y trabaja en el script de forma que funcione en cuanto el usuario los complete.
-
-### Los scripts deben declarar sus requisitos del editor
-
-Como el usuario será quien monte las escenas, cada script que dependa de algo configurado en el editor debe dejarlo explícito y fallar de forma visible:
-
-- Usa `@export` (con tipo) para referencias y valores que el usuario deba asignar en el Inspector, en lugar de rutas frágiles con `get_node("...")` o `$Ruta/Larga`.
-- Si el script necesita un nodo hijo concreto, un grupo, una acción de Input Map, una capa de colisión o un Autoload, hazlo constar en la guía de la sección 3 y verifica su existencia al iniciar (`assert` o `push_error` con un mensaje claro que diga qué falta y dónde configurarlo).
-- No ocultes una configuración faltante con valores por defecto silenciosos.
-
-## 3. Guía paso a paso para el editor de Godot (obligatoria)
-
-Siempre que el usuario deba hacer algo en el editor de Godot 4.7.2, entrega una guía **muy detallada**, pensada para alguien que no recuerda dónde está cada cosa. Nunca respondas con instrucciones vagas como "añade un nodo X y conecta la señal" o "configura la colisión".
-
-### Formato obligatorio de cada guía
-
-1. **Objetivo:** una frase que diga qué quedará funcionando al terminar.
-2. **Antes de empezar:** qué escena o script abrir, qué debe existir ya y qué script nuevo o modificado se usa en la guía.
-3. **Pasos numerados:** un solo clic o acción por paso (ver reglas más abajo).
-4. **Cómo comprobar que quedó bien:** qué debe verse en el editor o qué debe ocurrir al ejecutar (con la tecla `F5` o `F6`, indicando cuál).
-5. **Errores comunes:** los fallos más probables y cómo se ven (por ejemplo, el mensaje de error que mostrará el script si falta la asignación).
-
-### Reglas para redactar los pasos
-
-- **Un paso = una acción.** Divide en pasos separados abrir un menú, elegir la opción y confirmar.
-- **Indica dónde está cada cosa:** panel (Scene / árbol de escena, FileSystem / Sistema de archivos, Inspector, Node / Nodo, Output, Debugger, etc.), menú o pestaña, con el nombre tal como aparece en el editor. Menciona el nombre en inglés y, entre paréntesis, el equivalente en español cuando el editor pueda estar en español.
-- **Nombres exactos y sensibles a mayúsculas:** da el nombre exacto que debe tener cada nodo, grupo, acción de Input Map, capa o archivo, porque los scripts dependen de ellos. Escríbelos en `código`.
-- **Tipo de nodo exacto** (por ejemplo, `Node3D`, `StaticBody3D`, `CollisionShape3D`, `MeshInstance3D`) y **dónde se cuelga** en el árbol: indica el nodo padre.
-- **Ruta de los archivos** completa desde `res://`, tanto para scripts como para escenas o recursos que deban abrirse o crearse.
-- **Cómo asignar un script a un nodo:** selecciona el nodo, ve al Inspector, busca la propiedad `Script` o usa el botón de adjuntar script del panel Scene, y elige la ruta exacta del script (indica si es adjuntar uno existente o crear uno).
-- **Propiedades del Inspector:** indica el nombre exacto de la propiedad, la sección donde está (por ejemplo, `Collision`, `Transform`, `Mesh`, `Material`) y el valor a introducir. Si el valor es una referencia (un nodo o un recurso), explica cómo asignarla: arrastrar desde el panel, o hacer clic en el campo y elegir **Assign...** / **Quick Load** / **Load**.
-- **Variables `@export`:** di en qué nodo aparecen (el que lleva el script), con qué nombre se muestran en el Inspector (Godot lo muestra con la primera letra en mayúscula y espacios en lugar de guiones bajos) y qué se debe asignar.
-- **Señales:** si debe conectarse una señal en el editor, indica nodo emisor, pestaña **Node** → **Signals**, nombre de la señal, doble clic, nodo receptor y método destino. Si es posible, prefiere conectar la señal por código en el script y evita este paso manual.
-- **Grupos, Input Map, Autoloads, capas de física:** indica la ruta de menú completa (por ejemplo, **Project → Project Settings → ...**) y la pestaña exacta, junto con qué escribir en cada campo y qué botón pulsar para confirmar (por ejemplo, **Add**).
-- **Guardado:** termina cada bloque de cambios con el paso de guardar (`Ctrl+S`) cuando corresponda, e indica si hay que guardar la escena o el proyecto.
-- **No des por hecho nada:** si un paso depende de que algo ya exista (un nodo, un grupo, una escena), dilo en "Antes de empezar" o crea ese requisito como paso previo.
-- **Ejemplo breve de redacción correcta:**
-  - Mal: "Añade un `CollisionShape3D` y configúralo."
-  - Bien: "1. En el panel **Scene**, haz clic derecho sobre el nodo `Chunk` y elige **Add Child Node...**. 2. En la ventana que se abre, escribe `CollisionShape3D`, selecciónalo y pulsa **Create**. 3. Con el nodo nuevo seleccionado, en el **Inspector** haz clic en el campo `Shape` y elige **New BoxShape3D**."
-- Si hay varias formas de hacer lo mismo, da **una sola** (la más simple y estable) y no ofrezcas alternativas salvo que haga falta.
-- Si no estás seguro de dónde está una opción en Godot 4.7.2 o de si existe, dilo con claridad en lugar de inventarlo, y sugiere al usuario cómo localizarla (por ejemplo, con la búsqueda de ayuda del editor).
-
-## 4. Pilares del juego
+## 3. Pilares del juego
 
 Considera estos pilares al proponer o implementar cualquier sistema:
 
@@ -95,7 +39,7 @@ Considera estos pilares al proponer o implementar cualquier sistema:
 
 La supervivencia es una parte del juego, pero no debe desplazar automáticamente a la exploración, la construcción o la libertad del jugador como prioridades de diseño.
 
-## 5. Principios de diseño
+## 4. Principios de diseño
 
 - Favorecer sistemas que interactúen entre sí y generen posibilidades emergentes.
 - Diseñar la progresión para ampliar las opciones del jugador, no solo para aumentar estadísticas.
@@ -105,16 +49,16 @@ La supervivencia es una parte del juego, pero no debe desplazar automáticamente
 - Mantener los sistemas configurables cuando sea útil para equilibrar el juego o experimentar con distintas reglas.
 - No decidir detalles de lore, economía, progresión o supervivencia que todavía no estén definidos. Si una decisión afecta al diseño general, señalar la duda antes de asumirla.
 
-## 6. Motor y compatibilidad
+## 5. Motor y compatibilidad
 
 - Motor objetivo: **Godot 4.7.2**.
 - Usa GDScript y las APIs compatibles con esa versión, salvo que el proyecto ya haya establecido otra tecnología.
 - Antes de usar una clase, propiedad, método o característica, comprueba que sea compatible con Godot 4.7.2.
 - Sigue las convenciones de nodos, escenas, recursos y señales propias de Godot.
 - Evita introducir plugins o dependencias externas sin una necesidad clara y una justificación breve.
-- No cambies la versión del motor ni la configuración global del proyecto como parte de una tarea no relacionada (y recuerda que, por la sección 2, la configuración del proyecto no se edita; se guía al usuario para hacerlo).
+- No cambies la versión del motor ni la configuración global del proyecto como parte de una tarea no relacionada.
 
-## 7. Directrices de código limpio
+## 6. Directrices de código limpio
 
 ### Claridad y responsabilidad
 
@@ -145,7 +89,7 @@ La supervivencia es una parte del juego, pero no debe desplazar automáticamente
 
 ### Manejo de errores y rendimiento
 
-- Valida los datos y las referencias externas cuando exista un riesgo real de error. Esto incluye las referencias que dependen del editor (sección 2).
+- Valida los datos y las referencias externas cuando exista un riesgo real de error, incluidas las referencias a nodos y recursos asignados en escenas.
 - Evita validaciones redundantes que no aporten seguridad.
 - No ocultes errores con valores por defecto silenciosos si eso dificulta detectar un fallo.
 - Evita operaciones costosas por fotograma cuando puedan ejecutarse al iniciar, al cambiar el estado o de forma diferida.
@@ -153,14 +97,14 @@ La supervivencia es una parte del juego, pero no debe desplazar automáticamente
 - No optimices prematuramente: identifica primero el problema y el impacto esperado.
 - No sacrifiques legibilidad ni corrección por optimizaciones especulativas.
 
-## 8. Directrices para el mundo voxel y la generación procedural
+## 7. Directrices para el mundo voxel y la generación procedural
 
 Estas reglas orientan futuras implementaciones; no implican que todos los sistemas deban crearse de inmediato.
 
 - Mantén separadas, cuando corresponda, la generación de datos del mundo, la representación visual, las colisiones y la interacción.
 - Evita que la lógica del mundo dependa directamente de la interfaz o de detalles visuales.
 - Define claramente cómo se representan los bloques, las entidades, los biomas y los recursos antes de extender esos sistemas.
-- Usa datos o recursos configurables para propiedades que deban variar entre bloques, entidades o biomas. Define la clase en script; si hace falta crear instancias `.tres`, entrega la guía de la sección 3 al usuario.
+- Usa datos o recursos configurables para propiedades que deban variar entre bloques, entidades o biomas.
 - Procura que la generación sea reproducible mediante semillas cuando el sistema lo requiera.
 - Evita generar de nuevo regiones completas si solo cambió una parte pequeña del mundo.
 - Ten en cuenta los límites entre regiones o chunks al diseñar generación, iluminación, colisiones y actualización de geometría, si el proyecto utiliza chunks.
@@ -169,27 +113,26 @@ Estas reglas orientan futuras implementaciones; no implican que todos los sistem
 - Trata las entidades como sistemas con comportamiento y ciclo de vida propios; no las mezcles automáticamente con la representación de bloques.
 - Considera guardado y carga como parte de la persistencia del mundo cuando se implemente, evitando que los cambios del jugador se pierdan al regenerar una zona.
 
-## 9. Escenas, nodos y recursos de Godot
+## 8. Escenas, nodos y recursos de Godot
 
-Esta sección describe cómo debe **escribirse el código** para convivir con escenas y nodos que el agente no edita (ver sección 2).
-
-- Escribe scripts que encajen con la estructura de escenas y nodos ya existente. Inspecciónala en modo lectura antes de asumir nada.
+- Inspecciona la estructura de escenas y nodos existente antes de modificarla o asumir nada.
 - Prefiere `@export` tipado para recibir referencias de nodos y recursos, en lugar de rutas frágiles o búsquedas costosas.
-- Usa señales para comunicar eventos entre sistemas sin acoplarlos innecesariamente. Prefiere conectarlas por código con `connect()` para evitar pasos manuales en el editor.
-- No conviertas automáticamente todo en un Autoload. Reserva los Autoloads para servicios o estados que realmente deban ser globales. Registrar un Autoload es un paso del editor: guía al usuario según la sección 3.
+- Usa señales para comunicar eventos entre sistemas sin acoplarlos innecesariamente. Conéctalas por código con `connect()` o en la escena, según lo que ya use el proyecto.
+- No conviertas automáticamente todo en un Autoload. Reserva los Autoloads para servicios o estados que realmente deban ser globales.
 - No guardes estado global mutable en recursos compartidos sin considerar que varias escenas pueden estar usando la misma instancia.
 - Respeta las convenciones de nombres y la organización de carpetas que ya existan. Si no hay una convención, propón una sencilla antes de crear una estructura extensa.
-- Si un script nuevo necesita una escena, un nodo o un recurso que todavía no existe, descríbelo en la guía del editor en lugar de crearlo.
+- Si un script nuevo necesita una escena, un nodo o un recurso que todavía no existe, créalo.
+- Los nodos pueden crearse en escena o en tiempo de ejecución, según lo que sea más natural para la arquitectura (por ejemplo, los chunks de un mundo voxel suelen crearse por código). No reemplaces una estructura de nodos existente sin una razón clara.
+- Mantén las escenas pequeñas y con una responsabilidad clara; divide en subescenas cuando aporte reutilización o legibilidad.
 
-## 10. Flujo de trabajo obligatorio para el agente
+## 9. Flujo de trabajo obligatorio para el agente
 
 Antes de editar:
 
-1. Inspecciona los archivos, escenas y scripts relevantes para entender cómo funciona actualmente el sistema (las escenas, solo en lectura).
+1. Inspecciona los archivos, escenas y scripts relevantes para entender cómo funciona actualmente el sistema.
 2. Identifica el punto de entrada y las dependencias afectadas.
 3. Comprueba si la funcionalidad ya existe para evitar duplicarla.
-4. Determina el cambio mínimo que resuelva la solicitud **usando solo scripts**.
-5. Decide qué parte de la solución, si alguna, requiere intervención del usuario en el editor.
+4. Determina el cambio mínimo que resuelva la solicitud.
 
 Durante la implementación:
 
@@ -198,29 +141,25 @@ Durante la implementación:
 3. No sobrescribas trabajo existente ni elimines archivos sin una necesidad clara.
 4. No cambies sistemas no relacionados, configuraciones globales o recursos de arte por conveniencia.
 5. Si descubres un problema adicional, informa de él y evita ampliar el alcance sin autorización, salvo que sea imprescindible para que la solución funcione.
-6. Si algo solo se puede resolver tocando una escena, un nodo o el editor, detente en ese punto, no lo hagas y prepara la guía paso a paso.
 
 Después de editar:
 
-1. Revisa los cambios y busca errores de sintaxis, referencias rotas, rutas incorrectas y dependencias faltantes.
-2. Comprueba que ningún archivo que no sea un script (`.gd`) haya sido modificado.
-3. Ejecuta las comprobaciones o pruebas disponibles que sean pertinentes.
-4. Si puedes ejecutar el proyecto con Godot, verifica el resultado relevante. No afirmes que una prueba se ejecutó si no fue así.
-5. Resume qué archivos cambiaste, qué comportamiento se añadió o corrigió y qué validaciones realizaste.
-6. Entrega la guía del editor (sección 3) si queda algo por configurar, e indica cualquier limitación o comprobación pendiente con claridad.
+1. Revisa los cambios y busca errores de sintaxis, referencias rotas, rutas incorrectas y dependencias faltantes, tanto en scripts como en escenas y recursos.
+2. Ejecuta las comprobaciones o pruebas disponibles que sean pertinentes.
+3. Si puedes ejecutar el proyecto con Godot, verifica el resultado relevante. No afirmes que una prueba se ejecutó si no fue así.
+4. Resume qué archivos cambiaste, qué comportamiento se añadió o corrigió y qué validaciones realizaste.
+5. Indica cualquier limitación o comprobación pendiente con claridad.
 
-## 11. Pruebas y criterios de aceptación
+## 10. Pruebas y criterios de aceptación
 
-- Implementa pruebas automatizadas cuando el sistema y la infraestructura existente lo permitan y aporten valor. Los scripts de prueba también son scripts: no necesitan escenas nuevas si pueden ejecutarse sin ellas; si las necesitaran, guía al usuario.
+- Implementa pruebas automatizadas cuando el sistema y la infraestructura existente lo permitan y aporten valor.
 - Para sistemas de generación procedural, verifica casos límite, semillas repetibles y consistencia de los datos cuando corresponda.
 - Para mecánicas de juego, comprueba tanto el caso normal como los estados de fallo relevantes.
-- Para cambios que dependan de escenas, verifica en modo lectura que las referencias, señales, colisiones y recursos esperados existan, y deja en la guía del editor lo que el usuario deba comprobar al ejecutar.
+- Para cambios que dependan de escenas, verifica que las referencias, señales, colisiones y recursos esperados existan y estén bien conectados.
 - No consideres una tarea terminada solo porque el código compila: comprueba el comportamiento solicitado en la medida de lo posible.
 
-## 12. Qué evitar
+## 11. Qué evitar
 
-- **No editar escenas, nodos, recursos ni configuración del proyecto** (sección 2).
-- **No dar instrucciones de editor vagas o incompletas** (sección 3).
 - No introducir sistemas completos que el usuario no haya solicitado.
 - No añadir dependencias, plugins o frameworks solo por preferencia personal.
 - No duplicar funciones o datos que ya existan.
@@ -232,14 +171,13 @@ Después de editar:
 - No afirmar que algo está probado, optimizado o terminado sin evidencia.
 - No mezclar decisiones, archivos ni sistemas de Valero con NOVARA.
 
-## 13. Cómo responder al usuario
+## 12. Cómo responder al usuario
 
 Al terminar una tarea, informa de forma breve y concreta:
 
-- **Implementado:** qué cambió en los scripts.
-- **Archivos:** cuáles se modificaron o crearon (solo `.gd`).
+- **Implementado:** qué cambió (scripts, escenas, recursos o configuración).
+- **Archivos:** cuáles se modificaron o crearon.
 - **Verificación:** qué pruebas o comprobaciones se ejecutaron y sus resultados.
-- **Pasos en el editor:** la guía detallada de la sección 3 para todo lo que el usuario deba hacer en escenas, nodos o configuración del proyecto. Si no hay nada que hacer en el editor, indícalo expresamente.
 - **Pendiente:** limitaciones reales o decisiones que requieren confirmación.
 
 Si falta información esencial, haz una pregunta concreta. Si puedes avanzar con una opción segura y reversible, explica brevemente la suposición y continúa sin bloquear el trabajo por detalles menores.
@@ -248,4 +186,4 @@ Si falta información esencial, haz una pregunta concreta. Si puedes avanzar con
 
 ## Regla principal
 
-**Construye NOVARA como un conjunto de sistemas claros, conectados y ampliables que favorezcan la exploración, la construcción y la libertad del jugador. Mantén el código simple, los cambios acotados y las decisiones de diseño alineadas con los pilares del proyecto. Modifica únicamente scripts: todo lo que implique escenas, nodos o el editor de Godot lo hace el usuario, siempre con una guía paso a paso muy detallada.**
+**Construye NOVARA como un conjunto de sistemas claros, conectados y ampliables que favorezcan la exploración, la construcción y la libertad del jugador. Mantén el código simple, los cambios acotados y las decisiones de diseño alineadas con los pilares del proyecto. Puedes modificar scripts, escenas, nodos, recursos y configuración cuando la tarea lo requiera, siempre con cuidado de no romper lo existente.**
