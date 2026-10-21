@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://dicc7xucejl2d"]
+
+[ext_resource type="Texture2D" uid="uid://dsh6sdv63rn72" path="res://assets/ui/inventory/inventory_ui.png" id="1_hifxq"]
+[ext_resource type="Shader" uid="uid://c8wq3rkmn5v2t" path="res://shaders/hologram.gdshader" id="2_holo"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_inventory"]
+size = Vector2(1.725, 0.8625)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_holo"]
+shader = ExtResource("2_holo")
+shader_parameter/albedo_texture = ExtResource("1_hifxq")
+shader_parameter/tint = Color(0.35, 0.85, 1, 1)
+shader_parameter/alpha = 0.9
+shader_parameter/scanline_density = 180.0
+shader_parameter/scanline_strength = 0.25
+shader_parameter/flicker_strength = 0.06
+shader_parameter/flicker_speed = 8.0
+shader_parameter/edge_glow = 0.8
+
+[node name="Inventory" type="Node3D" unique_id=327618765]
+
+[node name="Panel" type="MeshInstance3D" parent="." unique_id=558692507]
+mesh = SubResource("QuadMesh_inventory")
+surface_material_override/0 = SubResource("ShaderMaterial_holo")
