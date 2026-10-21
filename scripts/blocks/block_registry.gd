@@ -30,6 +30,12 @@ func get_block(id: int) -> Block:
 	return block
 
 
+## Identificadores registrados, para recorrer el catálogo (por ejemplo, al construir
+## el atlas de texturas).
+func ids() -> Array:
+	return _blocks.keys()
+
+
 func has_block(id: int) -> bool:
 	return _blocks.has(id)
 

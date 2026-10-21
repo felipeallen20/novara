@@ -32,7 +32,12 @@ var _generator: TerrainGenerator
 var _mesher: ChunkMesher
 var _registry: BlockRegistry
 var _mineral_registry: MineralRegistry
+var _atlas: BlockAtlas
+var _terrain_material: ShaderMaterial
 var _viewer: Node3D
+
+## Sombreado estilizado del terreno. Configurable desde el editor o por código.
+@export var terrain_style: StylizedMaterial = preload("res://resources/materials/terrain_style.tres")
 
 var _viewer_chunk := Vector3i.ZERO
 var _viewer_initialized := false
@@ -64,6 +69,11 @@ func configure(
 	_mesher = mesher
 	_registry = registry
 	_mineral_registry = mineral_registry
+	# El atlas se construye una vez aquí, en el hilo principal, y se comparte de solo
+	# lectura con las tareas de meshing.
+	_atlas = BlockAtlas.new()
+	_atlas.build(registry)
+	_terrain_material = _create_terrain_material()
 
 
 func set_viewer(viewer: Node3D) -> void:
@@ -171,7 +181,7 @@ func _start_meshing(coord: Vector3i) -> void:
 
 
 func _mesh_task(coord: Vector3i, chunk: ChunkData, neighbors: Array) -> void:
-	var mesh_data := _mesher.build(chunk, _registry, neighbors)
+	var mesh_data := _mesher.build(chunk, _registry, _atlas, neighbors, coord)
 	_mutex.lock()
 	_completed.append([_KIND_MESH, coord, mesh_data])
 	_mutex.unlock()
@@ -238,9 +248,16 @@ func _spawn_view(coord: Vector3i, mesh_data: ChunkMeshData) -> void:
 	var view := _CHUNK_VIEW_SCENE.instantiate() as ChunkView
 	add_child(view)
 	view.position = ChunkCoord.chunk_to_world(coord, CHUNK_SIZE)
+	view.set_terrain_material(_terrain_material)
 	view.apply(mesh_data)
 	_spawn_mineral_deposits(view, coord)
 	_views[coord] = view
+
+
+## Material único del terreno: muestrea el atlas por cara con las UV y el color de
+## vértice horneados en el mesher, bajo el sombreado estilizado.
+func _create_terrain_material() -> ShaderMaterial:
+	return terrain_style.create_material(true, _atlas.atlas_texture, _atlas.tile_uv)
 
 
 ## Instancia los depósitos de minerales del chunk dentro de su vista. Al colgar del

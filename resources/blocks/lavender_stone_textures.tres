@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="BlockTextures" load_steps=8 format=3]
+
+[ext_resource type="Script" uid="uid://bn5q7wrtk2mxc" path="res://scripts/blocks/block_textures.gd" id="1_tex"]
+[ext_resource type="Texture2D" uid="uid://kt1c7iq4cvwv" path="res://assets/textures/blocks/lavenderstone-top.png" id="2_top"]
+[ext_resource type="Texture2D" uid="uid://cvjvbwtykcuxv" path="res://assets/textures/blocks/lavenderstone-bottom.png" id="3_bottom"]
+[ext_resource type="Texture2D" uid="uid://dcjfffmtkwi8b" path="res://assets/textures/blocks/lavenderstone-side-1.png" id="4_side1"]
+[ext_resource type="Texture2D" uid="uid://u2m2kgo4k3p4" path="res://assets/textures/blocks/lavenderstone-side-2.png" id="5_side2"]
+[ext_resource type="Texture2D" uid="uid://w6bmw7wxyd8i" path="res://assets/textures/blocks/lavenderstone-side-3.png" id="6_side3"]
+[ext_resource type="Texture2D" uid="uid://bmtg6vs0wh2l7" path="res://assets/textures/blocks/lavenderstone-side-4.png" id="7_side4"]
+
+[resource]
+script = ExtResource("1_tex")
+top = ExtResource("2_top")
+bottom = ExtResource("3_bottom")
+side_1 = ExtResource("4_side1")
+side_2 = ExtResource("5_side2")
+side_3 = ExtResource("6_side3")
+side_4 = ExtResource("7_side4")

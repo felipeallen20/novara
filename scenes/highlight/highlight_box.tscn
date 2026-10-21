@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bq5k8wntr2yfd"]
+
+[ext_resource type="Script" uid="uid://c3v7m2xqhp4rn" path="res://scripts/highlight/highlight_box.gd" id="1_box"]
+
+[node name="HighlightBox" type="Node3D"]
+script = ExtResource("1_box")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]

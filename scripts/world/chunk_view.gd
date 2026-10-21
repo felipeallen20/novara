@@ -6,10 +6,18 @@ extends Node3D
 
 @onready var _mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var _collision_shape: CollisionShape3D = $StaticBody3D/CollisionShape3D
+@onready var _static_body: StaticBody3D = $StaticBody3D
 
 
 func _ready() -> void:
-	_mesh_instance.material_override = _create_material()
+	# Marca la colisión para que el resaltado identifique los bloques del terreno.
+	_static_body.add_to_group(HighlightController.TERRAIN_GROUP)
+
+
+## Material del terreno, compartido por todos los chunks. Lo prepara el streamer a
+## partir del atlas de texturas.
+func set_terrain_material(material: Material) -> void:
+	_mesh_instance.material_override = material
 
 
 func apply(mesh_data: ChunkMeshData) -> void:
@@ -22,15 +30,11 @@ func apply(mesh_data: ChunkMeshData) -> void:
 	arrays[Mesh.ARRAY_VERTEX] = mesh_data.vertices
 	arrays[Mesh.ARRAY_NORMAL] = mesh_data.normals
 	arrays[Mesh.ARRAY_COLOR] = mesh_data.colors
+	arrays[Mesh.ARRAY_TEX_UV] = mesh_data.uvs
+	arrays[Mesh.ARRAY_TEX_UV2] = mesh_data.atlas_offsets
 	arrays[Mesh.ARRAY_INDEX] = mesh_data.indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 	_mesh_instance.mesh = mesh
 	# La colisión se construye a partir del mismo mesh: deforma si cambia el terreno.
 	_collision_shape.shape = mesh.create_trimesh_shape()
-
-
-func _create_material() -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	return material

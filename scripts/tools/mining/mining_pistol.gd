@@ -1,3 +1,4 @@
+class_name MiningPistol
 extends Node3D
 
 ## Vista de la pistola de minado en la mano del jugador.
@@ -38,7 +39,25 @@ extends Node3D
 ## Si está activo, ancla la pistola a la mano derecha al iniciar.
 @export var anchor_to_hand := true
 
+## Efectividad del láser: durabilidad que le resta al mineral por segundo de
+## disparo continuo. La Sandite tiene 1.5 de durabilidad.
+@export var mining_power: float = 1.0
+
+## Destino de los objetos minados. Lo asigna el jugador al iniciar.
+var inventory: InventoryData
+
 const MODEL_NODE_NAMES: Array[StringName] = [&"Model", &"Model2", &"Model3"]
+
+## Nombre del raycast de puntería que vive en la cámara del jugador (la mirilla).
+const AIM_RAY_NODE_NAME := &"RayCast3D"
+
+@onready var _muzzle: Marker3D = $Muzzle
+@onready var _laser: RayCast3D = $Laser
+@onready var _beam: MeshInstance3D = $Beam
+
+## True mientras se mantiene pulsado el click izquierdo de disparo.
+var _firing := false
+var _aim_ray: RayCast3D
 
 
 func _ready() -> void:
@@ -50,6 +69,69 @@ func _ready() -> void:
 	if anchor_to_hand:
 		# Cambiar de padre no es seguro durante el _ready propio: se difiere un frame.
 		_anchor_to_hand.call_deferred()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	var button := event as InputEventMouseButton
+	if button == null or button.button_index != MOUSE_BUTTON_LEFT:
+		return
+	# Con el ratón libre (interfaz abierta) el click pertenece a la UI, no al arma.
+	_firing = button.pressed and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+
+
+## Mantiene el láser mientras se dispara. El haz solo sale si el jugador apunta a
+## un mineral, y `Laser` queda orientado del muzzle al impacto para que el paso
+## de minado tenga ya el rayo resuelto.
+func _physics_process(delta: float) -> void:
+	var aim: RayCast3D = _resolve_aim_ray() if _firing else null
+	if aim == null or not aim.is_colliding() or not _is_mineral(aim.get_collider()):
+		_hide_laser()
+		return
+	_shoot_laser(aim.get_collision_point())
+	_mine(aim.get_collider(), delta)
+
+
+## Aplica la potencia del láser al depósito apuntado y guarda en el inventario
+## los objetos que suelta cuando se rompe.
+func _mine(collider: Object, delta: float) -> void:
+	if inventory == null:
+		return
+	var deposit := (collider as Node).get_parent() as MineralDeposit
+	if deposit == null:
+		return
+	for item in deposit.mine(mining_power * delta):
+		inventory.add(item)
+
+
+## Dibuja el haz entre el muzzle y el impacto y apunta el raycast al mismo punto.
+func _shoot_laser(target: Vector3) -> void:
+	var start := _muzzle.global_position
+	_beam.visible = true
+	_beam.global_position = start.lerp(target, 0.5)
+	_beam.look_at(target)
+	_beam.scale = Vector3(1.0, 1.0, start.distance_to(target))
+	_laser.enabled = true
+	_laser.global_position = start
+	_laser.target_position = _laser.to_local(target)
+
+
+func _hide_laser() -> void:
+	_beam.visible = false
+	_laser.enabled = false
+
+
+## Raycast de la cámara que hace de mirilla; se busca una vez y se reutiliza.
+func _resolve_aim_ray() -> RayCast3D:
+	if _aim_ray == null:
+		var cam := _resolve_camera()
+		if cam != null:
+			_aim_ray = cam.get_node_or_null(NodePath(AIM_RAY_NODE_NAME)) as RayCast3D
+	return _aim_ray
+
+
+func _is_mineral(collider: Object) -> bool:
+	var node := collider as Node
+	return node != null and node.is_in_group(HighlightController.MINERAL_GROUP)
 
 
 func _resolve_model() -> void:

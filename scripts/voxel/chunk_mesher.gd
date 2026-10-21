@@ -42,7 +42,13 @@ const _FACE_CORNERS := [
 const _AO_BRIGHTNESS := [0.35, 0.6, 0.82, 1.0]
 
 
-func build(chunk: ChunkData, registry: BlockRegistry, neighbors: Array = []) -> ChunkMeshData:
+func build(
+	chunk: ChunkData,
+	registry: BlockRegistry,
+	atlas: BlockAtlas,
+	neighbors: Array = [],
+	chunk_coord: Vector3i = Vector3i.ZERO
+) -> ChunkMeshData:
 	var mesh_data := ChunkMeshData.new()
 	for y in chunk.size:
 		for z in chunk.size:
@@ -54,7 +60,9 @@ func build(chunk: ChunkData, registry: BlockRegistry, neighbors: Array = []) -> 
 				var block := registry.get_block(block_id)
 				if block == null:
 					continue
-				_append_visible_faces(mesh_data, chunk, registry, neighbors, local, block)
+				_append_visible_faces(
+					mesh_data, chunk, registry, atlas, neighbors, local, block, chunk_coord
+				)
 	return mesh_data
 
 
@@ -62,25 +70,31 @@ func _append_visible_faces(
 	mesh_data: ChunkMeshData,
 	chunk: ChunkData,
 	registry: BlockRegistry,
+	atlas: BlockAtlas,
 	neighbors: Array,
 	local: Vector3i,
-	block: Block
+	block: Block,
+	chunk_coord: Vector3i
 ) -> void:
 	for face_index in NEIGHBOR_OFFSETS.size():
 		var normal: Vector3i = NEIGHBOR_OFFSETS[face_index]
 		if registry.is_opaque(_block_id_at_offset(chunk, neighbors, local, normal)):
 			continue
-		_append_quad(mesh_data, chunk, registry, neighbors, local, block, face_index)
+		_append_quad(
+			mesh_data, chunk, registry, atlas, neighbors, local, block, face_index, chunk_coord
+		)
 
 
 func _append_quad(
 	mesh_data: ChunkMeshData,
 	chunk: ChunkData,
 	registry: BlockRegistry,
+	atlas: BlockAtlas,
 	neighbors: Array,
 	local: Vector3i,
 	block: Block,
-	face_index: int
+	face_index: int,
+	chunk_coord: Vector3i
 ) -> void:
 	var normal: Vector3i = NEIGHBOR_OFFSETS[face_index]
 	var tangents: Array = _FACE_TANGENTS[face_index]
@@ -101,12 +115,55 @@ func _append_quad(
 		)
 		ao_levels.append(_vertex_ao(side1, side2, corner_blocked))
 
+	var atlas_offset := atlas.get_face_offset(block.id, face_index)
+	# Sin textura (offset negativo) la cara se dibuja con el color plano del bloque.
+	var textured := atlas_offset.x >= 0.0
+	var base_color := Color.WHITE if textured else block.color
+	# Rotación y espejo del mosaico: dependen de la posición global del bloque, así que
+	# son iguales en todos los chunks y no cambian entre ejecuciones. Solo en las caras
+	# laterales, que son las que forman paredes.
+	var uv_sign := Vector2.ONE
+	var uv_swap := false
+	if textured and _is_lateral_face(face_index):
+		var global_block := chunk_coord * chunk.size + local
+		var uv_variant := _uv_variant(global_block)
+		uv_swap = (uv_variant & 1) != 0
+		uv_sign = Vector2(-1.0 if (uv_variant & 2) != 0 else 1.0, -1.0 if (uv_variant & 4) != 0 else 1.0)
 	var base := mesh_data.vertices.size()
 	for corner_index in corners.size():
-		mesh_data.vertices.append(Vector3(local) + corners[corner_index])
+		var corner_vector: Vector3 = corners[corner_index]
+		mesh_data.vertices.append(Vector3(local) + corner_vector)
 		mesh_data.normals.append(Vector3(normal))
-		mesh_data.colors.append(_lit_color(block.color, _AO_BRIGHTNESS[ao_levels[corner_index]]))
+		mesh_data.colors.append(_lit_color(base_color, _AO_BRIGHTNESS[ao_levels[corner_index]]))
+		var uv := _corner_uv(corner_vector, tangent1_axis, tangent2_axis)
+		if uv_swap:
+			uv = Vector2(uv.y, uv.x)
+		mesh_data.uvs.append(Vector2(0.5, 0.5) + (uv - Vector2(0.5, 0.5)) * uv_sign)
+		mesh_data.atlas_offsets.append(atlas_offset)
 	_append_quad_indices(mesh_data, base, ao_levels)
+
+
+## Cara lateral (no arriba ni abajo) según el orden de NEIGHBOR_OFFSETS.
+func _is_lateral_face(face_index: int) -> bool:
+	return face_index != 2 and face_index != 3
+
+
+## Variante UV determinista de un bloque: 3 bits (giro y dos espejos). Usa solo la
+## posición global, de modo que un mismo bloque se ve igual desde cualquier chunk.
+func _uv_variant(global_block: Vector3i) -> int:
+	var hash := (
+		global_block.x * 73856093
+		^ global_block.y * 19349663
+		^ global_block.z * 83492791
+	)
+	return hash & 7
+
+
+## UV local [0,1] de una esquina dentro de la celda del atlas, según sus tangentes.
+func _corner_uv(corner: Vector3, tangent1_axis: Vector3i, tangent2_axis: Vector3i) -> Vector2:
+	var u := corner.dot(Vector3(tangent1_axis))
+	var v := corner.dot(Vector3(tangent2_axis))
+	return Vector2(u, v)
 
 
 func _append_quad_indices(mesh_data: ChunkMeshData, base: int, ao_levels: Array) -> void:

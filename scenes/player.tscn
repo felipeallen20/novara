@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://c244oww7kxcut" path="res://scripts/player/player_controller.gd" id="1_player"]
 [ext_resource type="PackedScene" uid="uid://dsu4xvynn4cr3" path="res://scenes/tools/mining_pistol.tscn" id="2_g2els"]
+[ext_resource type="Script" uid="uid://d4h8n3ywkq9sv" path="res://scripts/highlight/highlight_controller.gd" id="3_hl"]
+[ext_resource type="PackedScene" uid="uid://bq5k8wntr2yfd" path="res://scenes/highlight/highlight_box.tscn" id="4_hlbox"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.4
@@ -18,7 +20,17 @@ shape = SubResource("CapsuleShape3D_body")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 current = true
 
+[node name="RayCast3D" type="RayCast3D" parent="Camera3D" unique_id=812345014]
+target_position = Vector3(0, 0, -6)
+collide_with_areas = true
+
 [node name="RightHand" type="Marker3D" parent="Camera3D" unique_id=1112287852]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.7, 0)
 
 [node name="MiningPistol" parent="." unique_id=555612279 instance=ExtResource("2_g2els")]
+
+[node name="HighlightController" type="Node3D" parent="." unique_id=812345015]
+script = ExtResource("3_hl")
+
+[node name="Box" parent="HighlightController" unique_id=812345016 instance=ExtResource("4_hlbox")]
+visible = false

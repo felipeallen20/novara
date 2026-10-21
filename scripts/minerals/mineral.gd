@@ -26,5 +26,7 @@ enum Rarity {
 @export var color: Color = Color.WHITE
 ## Bloque de superficie sobre cuyas columnas puede nacer.
 @export var host_block_id: int = 0
+## Objetos que suelta el depósito al romperse.
+@export var loot: LootTable
 ## Escena de la representación en el mundo, sin posición ni giro aplicados.
 @export var model: PackedScene

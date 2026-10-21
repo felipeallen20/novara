@@ -13,6 +13,9 @@ const MOUSE_SENSITIVITY := 0.0025
 const MAX_PITCH := 1.5
 
 @onready var _camera: Camera3D = $Camera3D
+@onready var _ray_cast: RayCast3D = $Camera3D/RayCast3D
+@onready var _highlight: HighlightController = $HighlightController
+@onready var _mining_pistol: MiningPistol = $MiningPistol
 
 var _pitch := 0.0
 var _safe_zone: SafeZone
@@ -22,6 +25,9 @@ var _was_in_safe_zone := false
 ## para que estén disponibles antes de que cualquier _ready acceda a ellas.
 var stats := PlayerStats.new()
 
+## Objetos recogidos por el jugador (minería y otras actividades).
+var inventory := InventoryData.new()
+
 
 func set_safe_zone(safe_zone: SafeZone) -> void:
 	_safe_zone = safe_zone
@@ -29,6 +35,8 @@ func set_safe_zone(safe_zone: SafeZone) -> void:
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# La pistola mina al mundo; el inventario del jugador recoge lo que suelta.
+	_mining_pistol.inventory = inventory
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -64,6 +72,19 @@ func _physics_process(delta: float) -> void:
 		velocity.z = direction.z * WALK_SPEED
 	move_and_slide()
 	_report_safe_zone(not direction.is_zero_approx(), in_safe_zone)
+	_update_highlight()
+
+
+## Resalta el objeto apuntado por el raycast de la cámara. Se ejecuta tras mover
+## al jugador para que el rayo use la posición y el giro actuales.
+func _update_highlight() -> void:
+	if not _ray_cast.is_colliding():
+		_highlight.clear()
+		return
+	var collider := _ray_cast.get_collider()
+	var point := _ray_cast.get_collision_point()
+	var normal := _ray_cast.get_collision_normal()
+	_highlight.highlight(collider, point, normal)
 
 
 ## Imprime el estado de la safe zone solo cuando cambia y el jugador está caminando,

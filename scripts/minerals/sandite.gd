@@ -17,4 +17,5 @@ func _init() -> void:
 	yield_amount = 1
 	color = Color(0.47, 0.41, 0.34)
 	host_block_id = SoftGround.ID
+	loot = LootTable.new([LootEntry.new(SanditeItem.new(), 1, 2)])
 	model = MODEL

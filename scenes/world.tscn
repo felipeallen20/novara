@@ -43,8 +43,12 @@ environment = SubResource("Environment_alien")
 transform = Transform3D(0.77096, 0, -0.63688, -0.51053, 0.59785, -0.61801, 0.38076, 0.8016, 0.46092, 0, 0, 0)
 light_color = Color(1, 0.84, 0.66, 1)
 light_energy = 1.2
-light_angular_distance = 1.5
+light_angular_distance = 2.0
 shadow_enabled = true
+shadow_bias = 0.05
+shadow_normal_bias = 1.5
+directional_shadow_mode = 2
+directional_shadow_blend_splits = true
 directional_shadow_max_distance = 160.0
 
 [node name="ChunkStreamer" type="Node3D" parent="." unique_id=812345003]
