@@ -46,7 +46,8 @@ res://
     workspace/   fabricator.tscn (estación de fabricación)
     tools/       mining_pistol.tscn
     ui/          hud.tscn, interaction_prompt.tscn (aviso de interacción),
-                 crafting/crafting_ui.tscn (interfaz de fabricación)
+                 crafting/crafting_ui.tscn (interfaz de fabricación),
+                 crafting/recipe_card.tscn (ficha de receta)
   shaders/       alien_sky.gdshader
   scripts/
     blocks/      block.gd, soft_ground.gd, lavender_stone.gd, dark_stone.gd, block_registry.gd
@@ -55,13 +56,17 @@ res://
     minerals/    mineral.gd, sandite.gd, ferrite.gd, mineral_registry.gd, mineral_spawn.gd,
                  mineral_deposit.gd, crystal_mesh.gd
     plants/      plant.gd, oxyfern.gd, plant_spawn.gd
-    items/       item.gd, sandite_item.gd, ferrite_item.gd, inventory_data.gd, loot_table.gd
+    items/       item.gd, sandite_item.gd, ferrite_item.gd, oxyfern_item.gd,
+                 oxygen_tank_item.gd, item_registry.gd, inventory_data.gd, loot_table.gd
+    crafting/    recipe.gd, recipe_book.gd
     interaction/ interactable.gd
     workspace/   fabricator.gd
     player/      player_controller.gd
+    ui/          hud.gd, inventory_ui.gd, inventory.gd, crafting_ui.gd, recipe_card.gd,
+                 interaction_prompt.gd
     voxel/       chunk_coord.gd, chunk_data.gd, chunk_mesh_data.gd, chunk_mesher.gd
     world/       chunk_view.gd, chunk_streamer.gd, world.gd, safe_zone.gd
-  data/          (bloques .tres, world_config.tres) — pendiente
+  data/          recipes.json (datos de las recetas de fabricación)
 ```
 
 `world.tscn` se mantiene en `scenes/` para no mover el archivo ya existente. Cuando
@@ -422,6 +427,17 @@ cada tipo de objeto:
 - `CraftingUi` (`scenes/ui/crafting/crafting_ui.tscn`): interfaz de fabricación. Se
   muestra al entrar en el árbol y se libera al cerrarse, así que el HUD solo la
   instancia. Libera el ratón al abrirse y lo devuelve al cerrarse, y la misma tecla
-  `interaction` (E) que la abre la cierra. Ahora mismo el panel está vacío: no hay
-  recetas todavía.
+  `interaction` (E) que la abre la cierra.
+- Las recetas se leen de `data/recipes.json`: cada una tiene su id, el id del item
+  que produce y la lista de materiales con sus unidades. Los ids de item se
+  resuelven con el `ItemRegistry`, igual que los minerales con el `MineralRegistry`.
+- `RecipeCard` (`scenes/ui/crafting/recipe_card.tscn`): ficha de una receta, con el
+  icono y el nombre del item que se fabrica y, debajo, los materiales en fila, con su
+  icono pequeño y el recuento en forma "obtenido/necesario" ("7/10"), en verde cuando
+  sobran materiales y en rojo cuando faltan. Las fichas se colocan en filas de dos;
+  si la última fila se queda a medias, el hueco libre reserva la mitad del ancho
+  para que todas las fichas ocupen lo mismo.
+- Fabricar: el botón "Fabricar" solo se activa si el inventario tiene todos los
+  materiales; al pulsarlo se gastan y el item fabricado entra al inventario. Para
+  eso, `InventoryData` cuenta (`count`) y gasta (`remove`) unidades.
 

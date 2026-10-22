@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/crafting_ui.gd" id="1_crafting"]
 [ext_resource type="FontFile" path="res://assets/fonts/VCR_OSD_MONO_1.001.ttf" id="2_font"]
@@ -10,18 +10,6 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.25, 0.62, 0.95, 0.75)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_empty"]
-bg_color = Color(0.07, 0.16, 0.28, 0.6)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.3, 0.65, 1, 0.35)
 corner_radius_top_left = 2
 corner_radius_top_right = 2
 corner_radius_bottom_right = 2
@@ -78,10 +66,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -180.0
-offset_right = 260.0
-offset_bottom = 180.0
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_backdrop")
@@ -99,7 +87,7 @@ theme_override_colors/font_color = Color(0.55, 0.82, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
 text = "FABRICACIÓN"
 
-[node name="Content" type="Panel" parent="Root/Backdrop"]
+[node name="Rows" type="VBoxContainer" parent="Root/Backdrop"]
 layout_mode = 1
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -109,7 +97,8 @@ offset_right = -16.0
 offset_bottom = -56.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_empty")
+mouse_filter = 2
+theme_override_constants/separation = 8
 
 [node name="CloseButton" type="Button" parent="Root/Backdrop"]
 layout_mode = 1

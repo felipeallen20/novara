@@ -33,3 +33,35 @@ func get_slot(index: int) -> ItemStack:
 ## Cantidad de casillas ocupadas.
 func occupied_slots() -> int:
 	return _slots.size()
+
+
+## Cuántas unidades del item hay guardadas.
+func count(item: Item) -> int:
+	var total := 0
+	for stack in _slots:
+		if stack.item.id == item.id:
+			total += stack.amount
+	return total
+
+
+## Gasta unidades de un item, quitando la casilla si se queda vacía. Devuelve
+## false si no hay unidades suficientes.
+func remove(item: Item, amount: int) -> bool:
+	if count(item) < amount:
+		return false
+	var left := amount
+	var index := 0
+	while index < _slots.size() and left > 0:
+		var stack := _slots[index]
+		if stack.item.id != item.id:
+			index += 1
+			continue
+		var taken := mini(stack.amount, left)
+		stack.amount -= taken
+		left -= taken
+		if stack.amount > 0:
+			index += 1
+			continue
+		_slots.remove_at(index)
+	changed.emit()
+	return true
