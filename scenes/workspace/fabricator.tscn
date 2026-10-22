@@ -1,13 +1,15 @@
-[gd_scene load_steps=4 format=3 uid="uid://ivrq5r1r7xw7"]
+[gd_scene load_steps=5 format=3 uid="uid://ivrq5r1r7xw7"]
 
 [ext_resource type="Script" uid="uid://bnvq35xcd2red" path="res://scripts/workspace/fabricator.gd" id="1_fabricator"]
 [ext_resource type="PackedScene" uid="uid://c00v2upxpjll4" path="res://assets/models/workspace/estacion-fabricacion.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://scenes/ui/crafting/crafting_ui.tscn" id="3_crafting"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_station"]
 size = Vector3(1.48, 1.1, 1.96)
 
 [node name="Workstation" type="Node3D"]
 script = ExtResource("1_fabricator")
+interaction_ui = ExtResource("3_crafting")
 
 [node name="EstacionFabricacion" parent="." instance=ExtResource("2_model")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0.5618, 0)

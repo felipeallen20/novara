@@ -45,7 +45,8 @@ res://
     plants/      oxyfern.tscn (modelo de una planta)
     workspace/   fabricator.tscn (estación de fabricación)
     tools/       mining_pistol.tscn
-    ui/          hud.tscn, interaction_prompt.tscn (aviso de interacción)
+    ui/          hud.tscn, interaction_prompt.tscn (aviso de interacción),
+                 crafting/crafting_ui.tscn (interfaz de fabricación)
   shaders/       alien_sky.gdshader
   scripts/
     blocks/      block.gd, soft_ground.gd, lavender_stone.gd, dark_stone.gd, block_registry.gd
@@ -55,6 +56,7 @@ res://
                  mineral_deposit.gd, crystal_mesh.gd
     plants/      plant.gd, oxyfern.gd, plant_spawn.gd
     items/       item.gd, sandite_item.gd, ferrite_item.gd, inventory_data.gd, loot_table.gd
+    interaction/ interactable.gd
     workspace/   fabricator.gd
     player/      player_controller.gd
     voxel/       chunk_coord.gd, chunk_data.gd, chunk_mesh_data.gd, chunk_mesher.gd
@@ -339,6 +341,9 @@ segura:
   esa instancia: al instanciar una escena, el transform del nodo en el padre sustituye
   al de la raíz, así que el tamaño final se ajusta en `world.tscn` y no en
   `fabricator.tscn`.
+- Al apuntarla y pulsar la tecla `interaction` (E) se abre su interfaz de
+  fabricación (`scenes/ui/crafting/crafting_ui.tscn`), que ahora mismo está vacía:
+  no hay recetas todavía.
 
 ## 19. Plantas
 
@@ -394,3 +399,29 @@ minerales (datos puros en el hilo de cálculo, representación en el hilo princi
   `assets/items/icons/plants/oxyfern.png`.
 - Aviso: como la planta desaparece al recogerla, la del chunk vuelve a aparecer si
   el chunk se vuelve a cargar. La persistencia del mundo sigue pendiente.
+
+## 20. Interacción
+
+Todo lo con lo que el jugador puede interactuar (una planta, una estación)
+comparte la misma base, para que el jugador no repita la lógica de puntería por
+cada tipo de objeto:
+
+- `Interactable` (`scripts/interaction/interactable.gd`): base de los objetos
+  interactuables. Cada uno decide el texto del aviso
+  (`get_interaction_text`), hasta dónde se puede interactuar
+  (`get_interaction_distance`) y qué ocurre al interactuar (`interact`). También
+  declara `interaction_ui`: la interfaz que se abre al interactuar, si tiene alguna.
+- `PlayerController` apunta con su `RayCast3D` y busca el `Interactable` al que
+  pertenece el nodo colisionado, subiendo por sus padres (el `Area3D` de una planta,
+  el `StaticBody3D` de la estación). Si está dentro del alcance que permite el
+  objeto, entra en el foco:
+  - `interaction_focus_changed(target)`: el HUD muestra u oculta el aviso.
+  - `interaction_performed(target)`: el HUD abre la interfaz del objeto, si tiene.
+- `PlantPickup` y `Fabricator` heredan de `Interactable`. La planta se recoge y su
+  item va al inventario; la estación abre su interfaz de fabricación.
+- `CraftingUi` (`scenes/ui/crafting/crafting_ui.tscn`): interfaz de fabricación. Se
+  muestra al entrar en el árbol y se libera al cerrarse, así que el HUD solo la
+  instancia. Libera el ratón al abrirse y lo devuelve al cerrarse, y la misma tecla
+  `interaction` (E) que la abre la cierra. Ahora mismo el panel está vacío: no hay
+  recetas todavía.
+

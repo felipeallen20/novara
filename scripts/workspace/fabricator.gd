@@ -1,9 +1,12 @@
 class_name Fabricator
-extends Node3D
+extends Interactable
 
 ## Estación de fabricación: objeto fijo del mundo. El modelo importado no trae
 ## normales, así que al entrar en el árbol se le generan y se le aplica el
 ## sombreado estilizado del juego, con el color del metal en los vértices.
+##
+## Al apuntarla y pulsar la tecla de interacción se abre su interfaz de
+## fabricación.
 
 ## Sombreado estilizado de la estación. Configurable desde el editor o por código.
 @export var style: StylizedMaterial = preload("res://resources/materials/workspace_style.tres")
@@ -18,6 +21,11 @@ extends Node3D
 
 var _min_height := 0.0
 var _max_height := 1.0
+
+
+## Texto del aviso: la estación abre la interfaz de fabricación.
+func get_interaction_text() -> String:
+	return "Fabricar"
 
 
 func _ready() -> void:
