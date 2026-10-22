@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://dow7axsu0grie" path="res://scripts/world/chunk_streamer.gd" id="2_streamer"]
 [ext_resource type="PackedScene" uid="uid://cksu4c1vg4d8a" path="res://scenes/player.tscn" id="3_player"]
 [ext_resource type="Shader" uid="uid://bt11ukkysy4hf" path="res://shaders/alien_sky.gdshader" id="4_sky"]
+[ext_resource type="PackedScene" uid="uid://ivrq5r1r7xw7" path="res://scenes/workspace/fabricator.tscn" id="5_fabricator"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
 shader = ExtResource("4_sky")
@@ -47,7 +48,6 @@ light_angular_distance = 2.0
 shadow_enabled = true
 shadow_bias = 0.05
 shadow_normal_bias = 1.5
-directional_shadow_mode = 2
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 160.0
 
@@ -56,3 +56,6 @@ script = ExtResource("2_streamer")
 
 [node name="Player" parent="." unique_id=812345013 instance=ExtResource("3_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 18, 16)
+
+[node name="Fabricator" parent="." unique_id=459818996 instance=ExtResource("5_fabricator")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 1.6, 9, 16)

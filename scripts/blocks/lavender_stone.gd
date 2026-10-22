@@ -6,13 +6,10 @@ extends Block
 
 const ID := 2
 
-const TEXTURES := preload("res://resources/blocks/lavender_stone_textures.tres")
-
 
 func _init() -> void:
 	id = ID
 	display_name = "LavenderStone"
 	color = Color(0.78, 0.74, 0.92)
-	textures = TEXTURES
 	opaque = true
 	solid = true

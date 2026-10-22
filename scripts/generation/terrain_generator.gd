@@ -11,13 +11,15 @@ var _chunk_size: int
 var _biome: Biome
 var _safe_zone: SafeZone
 var _mineral_spawner: MineralSpawner
+var _plant_spawner: PlantSpawner
 
 
 func _init(
 	biome: Biome,
 	chunk_size: int,
 	safe_zone: SafeZone = null,
-	mineral_spawner: MineralSpawner = null
+	mineral_spawner: MineralSpawner = null,
+	plant_spawner: PlantSpawner = null
 ) -> void:
 	assert(
 		biome != null and biome.is_configured(),
@@ -31,6 +33,7 @@ func _init(
 	_biome = biome
 	_safe_zone = safe_zone
 	_mineral_spawner = mineral_spawner
+	_plant_spawner = plant_spawner
 
 
 func generate(chunk_coord: Vector3i) -> ChunkData:
@@ -46,7 +49,21 @@ func generate(chunk_coord: Vector3i) -> ChunkData:
 			var surface_id := surface_block(world_x, world_z)
 			data.fill_column(x, z, local_top, surface_id)
 			_append_mineral_spawns(data, world_x, world_z, Vector3i(x, local_top, z), surface_id)
+			_append_plant_spawns(data, world_x, world_z, Vector3i(x, local_top, z), surface_id)
 	return data
+
+
+## Plantas que nacen en la columna, con las mismas reglas que los depósitos: fuera
+## de la zona segura, que queda limpia para la aparición del jugador.
+func _append_plant_spawns(
+	data: ChunkData, world_x: int, world_z: int, local_column: Vector3i, surface_id: int
+) -> void:
+	if _plant_spawner == null:
+		return
+	if _safe_zone != null and _safe_zone.contains_xz(world_x, world_z):
+		return
+	for spawn: PlantSpawn in _plant_spawner.sample(world_x, world_z, surface_id, local_column):
+		data.plant_spawns.append(spawn)
 
 
 ## Depósitos de minerales de la columna, solo fuera de la zona segura: allí el suelo

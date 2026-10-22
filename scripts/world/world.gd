@@ -17,13 +17,15 @@ const CHUNK_Y_RANGE := Vector2i(0, 0)
 func _ready() -> void:
 	var registry := BlockRegistry.with_default_blocks()
 	var mineral_registry := MineralRegistry.with_default_minerals()
+	var plants: Array[Plant] = [Oxyfern.new()]
 	var biome := MiningLandsBiome.new()
 	biome.setup(WORLD_SEED)
 	var safe_zone := SafeZone.new(_player.global_position, biome.base_height)
 	var mineral_spawner := MineralSpawner.new(mineral_registry.minerals(), WORLD_SEED)
 	mineral_spawner.setup()
+	var plant_spawner := PlantSpawner.new(plants, biome)
 	var generator := TerrainGenerator.new(
-		biome, ChunkStreamer.CHUNK_SIZE, safe_zone, mineral_spawner
+		biome, ChunkStreamer.CHUNK_SIZE, safe_zone, mineral_spawner, plant_spawner
 	)
 	_chunk_streamer.configure(
 		LOAD_DISTANCE_CHUNKS,
@@ -32,7 +34,8 @@ func _ready() -> void:
 		generator,
 		ChunkMesher.new(),
 		registry,
-		mineral_registry
+		mineral_registry,
+		plants
 	)
 	_chunk_streamer.set_viewer(_player)
 	_player.set_safe_zone(safe_zone)

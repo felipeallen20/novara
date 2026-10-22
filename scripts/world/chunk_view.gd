@@ -14,8 +14,8 @@ func _ready() -> void:
 	_static_body.add_to_group(HighlightController.TERRAIN_GROUP)
 
 
-## Material del terreno, compartido por todos los chunks. Lo prepara el streamer a
-## partir del atlas de texturas.
+## Material del terreno, compartido por todos los chunks. Lo prepara el streamer:
+## con atlas si algún bloque tiene texturas, o color plano si no.
 func set_terrain_material(material: Material) -> void:
 	_mesh_instance.material_override = material
 

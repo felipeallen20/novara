@@ -40,7 +40,7 @@ extends Node3D
 @export var anchor_to_hand := true
 
 ## Efectividad del láser: durabilidad que le resta al mineral por segundo de
-## disparo continuo. La Sandite tiene 1.5 de durabilidad.
+## disparo continuo. La Arenita tiene 1.5 de durabilidad y la Ferrita 1.2.
 @export var mining_power: float = 1.0
 
 ## Destino de los objetos minados. Lo asigna el jugador al iniciar.

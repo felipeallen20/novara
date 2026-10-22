@@ -11,6 +11,7 @@ var _minerals: Dictionary = {}
 static func with_default_minerals() -> MineralRegistry:
 	var registry := MineralRegistry.new()
 	registry.register(Sandite.new())
+	registry.register(Ferrite.new())
 	return registry
 
 

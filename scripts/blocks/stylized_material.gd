@@ -102,8 +102,11 @@ func create_material(
 	var material := ShaderMaterial.new()
 	material.shader = SHADER
 	material.set_shader_parameter("use_atlas", use_atlas)
-	material.set_shader_parameter("atlas", atlas)
-	material.set_shader_parameter("tile_uv", tile_uv)
+	# El atlas solo se asigna si el material lo va a usar: dejarlo a null sería
+	# dejar un sampler sin textura en el shader.
+	if use_atlas:
+		material.set_shader_parameter("atlas", atlas)
+		material.set_shader_parameter("tile_uv", tile_uv)
 	_apply_parameters(material)
 	return material
 

@@ -26,6 +26,12 @@ enum Rarity {
 @export var color: Color = Color.WHITE
 ## Bloque de superficie sobre cuyas columnas puede nacer.
 @export var host_block_id: int = 0
+## Valor del ruido de parche a partir del cual la columna cae dentro de un
+## yacimiento del mineral. Cuanto menor, más superficie cubren los yacimientos.
+@export var patch_threshold: float = 0.48
+## Valor del ruido de dispersión a partir del cual la columna concreta recibe un
+## cristal dentro del yacimiento. Cuanto menor, más cristales sueltos hay.
+@export var scatter_threshold: float = 0.50
 ## Objetos que suelta el depósito al romperse.
 @export var loot: LootTable
 ## Escena de la representación en el mundo, sin posición ni giro aplicados.

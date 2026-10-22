@@ -6,6 +6,8 @@ extends RefCounted
 ## parche, que marca los yacimientos, y otro de dispersión, que suelta los cristales
 ## dentro de cada parche. Así dos minerales no comparten emplazamientos, no hace
 ## falta guardar nada y el mismo mundo produce siempre los mismos depósitos.
+## La abundancia de cada mineral la fija su definición (Mineral.patch_threshold y
+## Mineral.scatter_threshold), de modo que un mineral puede ser más común que otro.
 ##
 ## Ciclo de vida: se crea, se ajustan los parámetros y se llama a `setup`. Después
 ## solo se lee, con el mismo contrato que Biome, por lo que es seguro de usar desde
@@ -13,15 +15,9 @@ extends RefCounted
 
 ## Frecuencia del ruido de parche: a menor frecuencia, yacimientos más amplios.
 @export var patch_frequency: float = 0.08
-## Valor del ruido de parche a partir del cual la columna cae dentro de un yacimiento.
-## Con este valor los yacimientos cubren algo más del 10 % del terreno, en parches.
-@export var patch_threshold: float = 0.48
 ## Frecuencia del ruido de dispersión. Muy mayor que la del parche, para que los
 ## cristales sueltos sean columnas individuales y no bloques macizos.
 @export var scatter_frequency: float = 0.45
-## Valor del ruido de dispersión a partir del cual la columna concreta tiene cristal.
-## Combinado con el de parche deja cristales sueltos dentro de cada yacimiento.
-@export var scatter_threshold: float = 0.50
 
 ## Semillas propias de los ruidos, para que no coincidan con las del bioma.
 const PATCH_SEED_OFFSET := 499
@@ -74,10 +70,10 @@ func sample(
 		if mineral.host_block_id != surface_block_id:
 			continue
 		var patch_noise: FastNoiseLite = _patch_noises[mineral.id]
-		if patch_noise.get_noise_2d(world_x, world_z) <= patch_threshold:
+		if patch_noise.get_noise_2d(world_x, world_z) <= mineral.patch_threshold:
 			continue
 		var scatter_noise: FastNoiseLite = _scatter_noises[mineral.id]
-		if scatter_noise.get_noise_2d(world_x, world_z) <= scatter_threshold:
+		if scatter_noise.get_noise_2d(world_x, world_z) <= mineral.scatter_threshold:
 			continue
 		spawns.append(_make_spawn(mineral, world_x, world_z, local_column))
 	return spawns

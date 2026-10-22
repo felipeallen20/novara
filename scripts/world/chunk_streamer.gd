@@ -32,6 +32,7 @@ var _generator: TerrainGenerator
 var _mesher: ChunkMesher
 var _registry: BlockRegistry
 var _mineral_registry: MineralRegistry
+var _plants: Array[Plant] = []
 var _atlas: BlockAtlas
 var _terrain_material: ShaderMaterial
 var _viewer: Node3D
@@ -60,7 +61,8 @@ func configure(
 	generator: TerrainGenerator,
 	mesher: ChunkMesher,
 	registry: BlockRegistry,
-	mineral_registry: MineralRegistry
+	mineral_registry: MineralRegistry,
+	plants: Array[Plant] = []
 ) -> void:
 	_load_distance = load_distance
 	_unload_distance = unload_distance
@@ -69,6 +71,7 @@ func configure(
 	_mesher = mesher
 	_registry = registry
 	_mineral_registry = mineral_registry
+	_plants = plants
 	# El atlas se construye una vez aquí, en el hilo principal, y se comparte de solo
 	# lectura con las tareas de meshing.
 	_atlas = BlockAtlas.new()
@@ -251,12 +254,16 @@ func _spawn_view(coord: Vector3i, mesh_data: ChunkMeshData) -> void:
 	view.set_terrain_material(_terrain_material)
 	view.apply(mesh_data)
 	_spawn_mineral_deposits(view, coord)
+	_spawn_plants(view, coord)
 	_views[coord] = view
 
 
 ## Material único del terreno: muestrea el atlas por cara con las UV y el color de
-## vértice horneados en el mesher, bajo el sombreado estilizado.
+## vértice horneados en el mesher, bajo el sombreado estilizado. Si ningún bloque
+## tiene texturas, el terreno se dibuja con su color plano.
 func _create_terrain_material() -> ShaderMaterial:
+	if _atlas.atlas_texture == null:
+		return terrain_style.create_material(false)
 	return terrain_style.create_material(true, _atlas.atlas_texture, _atlas.tile_uv)
 
 
@@ -275,6 +282,28 @@ func _spawn_mineral_deposits(view: Node3D, coord: Vector3i) -> void:
 		deposit.scale = Vector3.ONE * spawn.scale
 		if deposit is MineralDeposit:
 			(deposit as MineralDeposit).apply(mineral, spawn.variation_seed)
+
+
+## Instancia las plantas del chunk dentro de su vista, igual que los depósitos.
+func _spawn_plants(view: Node3D, coord: Vector3i) -> void:
+	var data: ChunkData = _chunk_data[coord]
+	for spawn: PlantSpawn in data.plant_spawns:
+		var plant := _get_plant(spawn.plant_id)
+		if plant == null or plant.model == null:
+			continue
+		var node := plant.model.instantiate() as Node3D
+		view.add_child(node)
+		node.position = spawn.local_position
+		node.rotation = spawn.rotation
+		node.scale = Vector3.ONE * spawn.scale
+
+
+## Planta con esa id. La lista es corta, así que basta con recorrerla.
+func _get_plant(plant_id: int) -> Plant:
+	for plant in _plants:
+		if plant.id == plant_id:
+			return plant
+	return null
 
 
 ## Descarga con histéresis: se conserva hasta _unload_distance para no recargar lo que se

@@ -9,7 +9,8 @@ const float VARIATION_CELL = 8.0;
 //
 // Es un único shader reutilizable. El terreno lo usa con `use_atlas = true` (color por
 // textura); otros objetos con `use_atlas = false` (color plano por vértice). Todos los
-// parámetros vienen de un recurso StylizedMaterial.
+// parámetros vienen de un recurso StylizedMaterial, salvo `base_color`, que es para
+// los objetos que llevan el color en el material y no en los vértices.
 //
 // Por vértice llegan:
 //   UV  : coordenada local [0,1] dentro de la celda del atlas (solo terreno).
@@ -43,6 +44,10 @@ uniform float roughness = 0.9;
 // del gris medio; `texture_detail` acentúa las diferencias locales (definición).
 uniform float texture_contrast = 1.0;
 uniform float texture_detail = 0.0;
+
+// Color base del material, para los objetos que no llevan el color en los
+// vertices. Blanco por defecto: no cambia lo que ya usa el color por vertice.
+uniform vec3 base_color : source_color = vec3(1.0);
 
 // Variación cromática calculada una vez por vértice y multiplicada en el fragment.
 varying float variation_shift;
@@ -127,7 +132,7 @@ void vertex() {
 
 void fragment() {
 	// Albedo base por vértice (AO del terreno o color plano del objeto).
-	vec3 albedo = COLOR.rgb;
+	vec3 albedo = COLOR.rgb * base_color;
 	// Textura del atlas: muestreada por píxel para conservar el detalle y la mipmap.
 	// El realce de contraste/definición solo actúa cuando hay textura.
 	if (use_atlas && UV2.x >= 0.0) {

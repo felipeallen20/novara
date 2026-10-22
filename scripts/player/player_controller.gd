@@ -6,6 +6,10 @@ extends CharacterBody3D
 ## Posee las estadísticas vitales (stats); otros sistemas como el HUD se conectan
 ## a sus señales en lugar de consultarlas cada frame.
 
+## Se emite cuando cambia el objeto con el que el jugador puede interactuar:
+## la planta apuntada, o null si ya no apunta a ninguna.
+signal interaction_focus_changed(plant: PlantPickup)
+
 const WALK_SPEED := 6.0
 const JUMP_VELOCITY := 7.5
 const GRAVITY := 24.0
@@ -20,6 +24,8 @@ const MAX_PITCH := 1.5
 var _pitch := 0.0
 var _safe_zone: SafeZone
 var _was_in_safe_zone := false
+## Planta apuntada a la que se puede recoger, si la hay.
+var _focused_plant: PlantPickup = null
 
 ## Estadísticas vitales del jugador. Se crean en el propio script (no como .tres)
 ## para que estén disponibles antes de que cualquier _ready acceda a ellas.
@@ -33,6 +39,11 @@ func set_safe_zone(safe_zone: SafeZone) -> void:
 	_safe_zone = safe_zone
 
 
+## Cámara de la vista del jugador, para proyectar avisos en pantalla.
+func get_view_camera() -> Camera3D:
+	return _camera
+
+
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# La pistola mina al mundo; el inventario del jugador recoge lo que suelta.
@@ -42,6 +53,9 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		return
+	if event.is_action_pressed("interaction"):
+		_pick_up_plant()
 		return
 	var motion := event as InputEventMouseMotion
 	if motion == null or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
@@ -73,6 +87,43 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_report_safe_zone(not direction.is_zero_approx(), in_safe_zone)
 	_update_highlight()
+	_update_focus()
+
+
+## Recoge la planta apuntada y guarda el item en el inventario.
+func _pick_up_plant() -> void:
+	var plant := _aimed_plant()
+	if plant == null:
+		return
+	var item := plant.pick_up()
+	_focused_plant = null
+	interaction_focus_changed.emit(null)
+	if item != null:
+		inventory.add(item)
+
+
+## Planta a la que apunta el jugador y que puede recoger. Solo cuenta si está
+## lo bastante cerca.
+func _aimed_plant() -> PlantPickup:
+	if not _ray_cast.is_colliding():
+		return null
+	var collider := _ray_cast.get_collider() as Node
+	if collider == null:
+		return null
+	var plant := collider.get_parent() as PlantPickup
+	if plant == null or not plant.can_pick_up(global_position):
+		return null
+	return plant
+
+
+## Actualiza la planta apuntada y avisa de los cambios de foco para que el HUD
+## muestre u oculte el aviso de la tecla.
+func _update_focus() -> void:
+	var plant := _aimed_plant()
+	if plant == _focused_plant:
+		return
+	_focused_plant = plant
+	interaction_focus_changed.emit(plant)
 
 
 ## Resalta el objeto apuntado por el raycast de la cámara. Se ejecuta tras mover

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="StylizedMaterial" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dl9p5wqnxr2vk" path="res://scripts/blocks/stylized_material.gd" id="1_style"]
+
+[resource]
+script = ExtResource("1_style")
+light_bands = 4
+band_softness = 0.2
+shading_intensity = 1.05
+light_contrast = 1.15
+light_tint = Color(1, 0.97, 0.92, 1)
+shadow_tint = Color(0.6, 0.56, 0.74, 1)
+shadow_mix = 0.65
+saturation = 1.0
+color_variation = 0.02
+specular = 0.45
+roughness = 0.35
+texture_contrast = 1.0
+texture_detail = 0.0

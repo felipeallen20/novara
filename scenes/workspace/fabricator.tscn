@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://ivrq5r1r7xw7"]
+
+[ext_resource type="Script" uid="uid://bnvq35xcd2red" path="res://scripts/workspace/fabricator.gd" id="1_fabricator"]
+[ext_resource type="PackedScene" uid="uid://c00v2upxpjll4" path="res://assets/models/workspace/estacion-fabricacion.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_station"]
+size = Vector3(1.48, 1.1, 1.96)
+
+[node name="Workstation" type="Node3D"]
+script = ExtResource("1_fabricator")
+
+[node name="EstacionFabricacion" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0.5618, 0)
+
+[node name="Collision" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Collision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.01, 0.55, 0.02)
+shape = SubResource("BoxShape3D_station")

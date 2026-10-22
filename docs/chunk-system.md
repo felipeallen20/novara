@@ -41,15 +41,21 @@ hilos y reutilizarlos en pruebas sin tocar el árbol de escena.
 res://
   docs/          chunk-system.md
   scenes/        world.tscn, chunk_view.tscn, player.tscn
-    minerals/    sandite.tscn (modelo de un depósito de cristales)
+    minerals/    sandite.tscn, ferrite.tscn (modelos de depósitos de cristales)
+    plants/      oxyfern.tscn (modelo de una planta)
+    workspace/   fabricator.tscn (estación de fabricación)
     tools/       mining_pistol.tscn
-    ui/          hud.tscn
+    ui/          hud.tscn, interaction_prompt.tscn (aviso de interacción)
   shaders/       alien_sky.gdshader
   scripts/
     blocks/      block.gd, soft_ground.gd, lavender_stone.gd, dark_stone.gd, block_registry.gd
-    generation/  biome.gd, mining_lands_biome.gd, terrain_generator.gd, mineral_spawner.gd
-    minerals/    mineral.gd, sandite.gd, mineral_registry.gd, mineral_spawn.gd,
+    generation/  biome.gd, mining_lands_biome.gd, terrain_generator.gd, mineral_spawner.gd,
+                 plant_spawner.gd
+    minerals/    mineral.gd, sandite.gd, ferrite.gd, mineral_registry.gd, mineral_spawn.gd,
                  mineral_deposit.gd, crystal_mesh.gd
+    plants/      plant.gd, oxyfern.gd, plant_spawn.gd
+    items/       item.gd, sandite_item.gd, ferrite_item.gd, inventory_data.gd, loot_table.gd
+    workspace/   fabricator.gd
     player/      player_controller.gd
     voxel/       chunk_coord.gd, chunk_data.gd, chunk_mesh_data.gd, chunk_mesher.gd
     world/       chunk_view.gd, chunk_streamer.gd, world.gd, safe_zone.gd
@@ -101,6 +107,9 @@ World (Node3D)                 ← world.tscn, script world.gd (raíz y punto de
   mineral junto a `SoftGround` y `LavenderStone`.
 - `BlockRegistry` (Resource): asocia `id → Block`. Se construye una vez y se comparte
   sin modificarse, lo que lo hace seguro para los hilos.
+- Los bloques de superficie se dibujan con su color plano. El atlas de texturas solo
+  se construye si algún bloque tiene `textures` asignado; mientras ninguno lo tenga,
+  el terreno usa un material sin atlas.
 - A futuro, los bloques podrán definirse también como `.tres` sobre `Block` para
   ajustarlos desde el editor sin tocar código.
 
@@ -272,15 +281,22 @@ Los minerales no son bloques: son depósitos con forma propia que la generación
 sobre la superficie, separados en capas para no acoplar datos, generación y render:
 
 - `Mineral` (Resource): plantilla con las propiedades comunes (`id`, `display_name`,
-  `rarity`, `durability`, `yield_amount`, `color`, `host_block_id` y `model`). Todos
-  los minerales heredan de ella, igual que los bloques.
+  `rarity`, `durability`, `yield_amount`, `color`, `host_block_id`, `model`,
+  `patch_threshold` y `scatter_threshold`). Todos los minerales heredan de ella, igual
+  que los bloques. Los dos umbrales deciden la abundancia del mineral: los yacimientos
+  cubren mucha más superficie cuanto menor es el umbral de parche, y dentro del
+  yacimiento hay más cristales cuanto menor es el de dispersión.
 - `Sandite` (hereda de `Mineral`): Arenita, mineral común gris/café. Crece sobre las
   columnas de `SoftGround` y su `model` es `scenes/minerals/sandite.tscn`.
+- `Ferrite` (hereda de `Mineral`): Ferrita, mineral muy común de tono gris metálico.
+  Crece sobre las columnas de `DarkStone`, con umbrales bajos para que los yacimientos
+  sean frecuentes, y su `model` es `scenes/minerals/ferrite.tscn`.
 - `MineralRegistry` (Resource): asocia `id → Mineral`; se construye una vez en `World`
   y se comparte sin modificarse.
 - `MineralSpawner`: decide qué columnas tienen depósito. Cada mineral usa dos ruidos
-  derivados de la semilla del mundo y de su id: uno de parche (`patch_frequency` y
-  `patch_threshold`) marca los yacimientos y otro de dispersión reparte los cristales
+  derivados de la semilla del mundo y de su id: uno de parche (`patch_frequency` y el
+  `patch_threshold` del mineral) marca los yacimientos y otro de dispersión
+  (`scatter_frequency` y el `scatter_threshold` del mineral) reparte los cristales
   dentro de cada parche, para que no salgan bloques macizos de cristal. Dos minerales
   no comparten emplazamientos y la generación sigue siendo determinista sin guardar
   nada. Inmutable tras `setup`, con el mismo contrato que `Biome`.
@@ -298,3 +314,83 @@ sobre la superficie, separados en capas para no acoplar datos, generación y ren
 - Streaming: `ChunkStreamer` instancia los depósitos del chunk como hijos de su
   `ChunkView` al crearla, así se descargan con la vista sin llevar una cuenta aparte.
   No tienen colisión todavía: el minado y la recolección están pendientes.
+
+## 18. Zona de trabajo
+
+Objetos fijos del mundo que no son terreno ni mineral, colocados a mano en la zona
+segura:
+
+- `Fabricator` (script de `scenes/workspace/fabricator.tscn`): la estación de
+  fabricación. La escena instancia el modelo importado
+  (`assets/models/workspace/estacion-fabricacion.glb`), lo gira para que su parte
+  alta quede contra el borde y lo apoya en el suelo.
+- El modelo importado no trae normales, así que el script las genera al entrar en el
+  árbol: sin ellas no hay luz difusa y el objeto saldría negro. La orientación de
+  cada cara se decide mirando hacia fuera desde el centro de la malla, para no
+  depender del sentido de los triángulos del archivo.
+- El color va en los vértices (degradado vertical suave sobre el color base) y el
+  material es el sombreado estilizado de `resources/materials/workspace_style.tres`,
+  con `use_atlas = false` porque el modelo no tiene textura.
+- La colocación en el mundo está en `world.tscn`: la instancia va en el borde
+  izquierdo de la zona segura (el jugador aparece en `(16, 16)` mirando hacia `-Z`,
+  así que su izquierda es `-X`), apoyada en el suelo de la zona segura
+  (`y = base_height + 1`). Fuera de la zona segura el terreno es más alto, así que
+  la estación queda contra ese desnivel. El giro y la escala van en el transform de
+  esa instancia: al instanciar una escena, el transform del nodo en el padre sustituye
+  al de la raíz, así que el tamaño final se ajusta en `world.tscn` y no en
+  `fabricator.tscn`.
+
+## 19. Plantas
+
+Vegetación que crece sobre el terreno, generada con las mismas reglas que los
+minerales (datos puros en el hilo de cálculo, representación en el hilo principal):
+
+- `Plant` (Resource): plantilla de planta (`id`, `display_name`, `model`,
+  `host_block_id`, `cliff_block_ids`, `min_cliff_height`, `density`, `spacing` y
+  `scale_range`). `can_grow` decide si la superficie le sirve: tiene que ser su
+  bloque de host.
+- `Oxyfern` (hereda de `Plant`): helecho que crece sobre `SoftGround`, al pie de
+  los bordes de roca que la superan por 4 o más bloques (`cliff_block_ids` con
+  `DarkStone` y `LavenderStone`). Su modelo es `scenes/plants/oxyfern.tscn`.
+- `PlantSpawner`: decide qué plantas nacen en cada columna, con tres filtros:
+  1. **Superficie**: la columna tiene que ser del bloque de host de la planta.
+  2. **Separación**: el mundo se divide en celdas de `spacing` bloques y solo el
+     anclaje de cada celda (una columna elegida con semilla) puede tener planta,
+     así que no se amontonan.
+  3. **Desnivel**: a `CLIFF_RADIUS` bloques en las ocho direcciones tiene que haber
+     roca que la supere por `min_cliff_height` bloques. Es lo que las mantiene al
+     pie de las montañas y en ningún otro sitio.
+  Encima de eso, `density` decide el porcentaje de columnas que pasan.
+- `PlantSpawn`: dato puro (`plant_id`, `local_position`, `rotation`, `scale`) que la
+  generación añade a `ChunkData.plant_spawns`. Como los minerales, las plantas no
+  nacen dentro de la safe zone.
+- Streaming: `ChunkStreamer` instancia las plantas del chunk como hijas de su
+  `ChunkView`, con la posición, el giro y la escala que decidió la generación.
+- La lista de plantas vive en `world.gd`; con una o dos plantas no hace falta un
+  registro propio, el streamer las busca por id.
+- El modelo de la Oxyfern viene en centímetros, así que la escena lo escala a 0.006
+  (unos 0,4 bloques de alto) y le pone el material del juego con el color en el
+  uniforme `base_color` del shader.
+
+### Recoger plantas
+
+- `PlantPickup` (script de `scenes/plants/oxyfern.tscn`): planta que se puede recoger.
+  La escena lleva un `Area3D` (un cilindro bajo y fino) para que el rayo de puntería
+  la alcance. La planta no lleva ningún aviso: el HUD lo dibuja como elemento de
+  interfaz.
+- `PlayerController` apunta con su `RayCast3D`: si el collider es el `Area3D` de una
+  planta y está a menos de `pick_up_distance` bloques, la planta queda enfocada y la
+  tecla `interaction` (E) la recoge. El item va al inventario (`InventoryData.add`) y
+  la planta desaparece del mundo.
+- `PlayerController` avisa del cambio de foco con la señal `interaction_focus_changed`
+  (la planta enfocada, o null si ya no hay ninguna). El HUD se conecta a ella en vez de
+  consultar la puntería cada frame.
+- `InteractionPrompt` (`scenes/ui/interaction_prompt.tscn`): aviso del HUD con la tecla
+  que hay que pulsar (`E`) y la acción (`Recoger Oxyfern`). Es un `Control` de 2D: se
+  proyecta la posición de la planta con `Camera3D.unproject_position` y se coloca un
+  poco por encima, dentro de la pantalla, para que se lea siempre con nitidez y no se
+  confunda con la geometría de la escena.
+- `OxyfernItem` (id 3) es el objeto que deja, con el icono de
+  `assets/items/icons/plants/oxyfern.png`.
+- Aviso: como la planta desaparece al recogerla, la del chunk vuelve a aparecer si
+  el chunk se vuelve a cargar. La persistencia del mundo sigue pendiente.

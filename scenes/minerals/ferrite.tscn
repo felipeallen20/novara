@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/minerals/mineral_deposit.gd" id="1_deposit"]
+
+[node name="Ferrite" type="Node3D"]
+script = ExtResource("1_deposit")
+shard_count = 4
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
